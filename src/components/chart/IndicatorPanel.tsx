@@ -49,7 +49,6 @@ export function IndicatorPanel() {
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
-          aria-hidden="true"
         >
           <path d="M3 3v18h18" />
           <path d="M7 16l4-8 4 4 4-6" />
@@ -64,8 +63,6 @@ export function IndicatorPanel() {
 
       {open && (
         <>
-          {/* biome-ignore lint/a11y/noStaticElementInteractions: backdrop overlay */}
-          {/* biome-ignore lint/a11y/useKeyWithClickEvents: backdrop overlay */}
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div className="absolute right-0 top-full mt-1 z-50 w-64 bg-gray-900 border border-gray-700 rounded-lg shadow-xl overflow-hidden">
             <div className="px-3 py-2 border-b border-gray-700">
@@ -101,7 +98,6 @@ export function IndicatorPanel() {
                               fill="none"
                               stroke="currentColor"
                               strokeWidth="3"
-                              aria-hidden="true"
                             >
                               <path d="M5 13l4 4L19 7" />
                             </svg>
