@@ -1,5 +1,3 @@
-import { useQuery } from '@tanstack/react-query'
-import { POLLING_INTERVAL } from '@/config/constants'
 import type { PairConfig } from '@/config/pairs'
 import { formatPrice, formatPriceChange } from '@/lib/utils'
 
@@ -7,29 +5,12 @@ interface Props {
   pair: PairConfig
   selected: boolean
   onClick: () => void
+  price?: number
+  previousClose?: number
 }
 
-export function PairItem({ pair, selected, onClick }: Props) {
-  const { data } = useQuery({
-    queryKey: ['sidebar-price', pair.id],
-    queryFn: async () => {
-      const base = import.meta.env.DEV ? '/api/yahoo' : 'https://query1.finance.yahoo.com'
-      const url = `${base}/v8/finance/chart/${encodeURIComponent(pair.yahooSymbol)}?interval=1d&range=1d`
-      const res = await fetch(url)
-      if (!res.ok) return null
-      const json = await res.json()
-      const meta = json.chart.result[0].meta
-      return {
-        regularMarketPrice: meta.regularMarketPrice as number,
-        previousClose: meta.previousClose as number,
-      }
-    },
-    staleTime: POLLING_INTERVAL,
-    refetchInterval: POLLING_INTERVAL,
-  })
-
-  const price = data?.regularMarketPrice ?? 0
-  const change = price && data?.previousClose ? formatPriceChange(price, data.previousClose) : null
+export function PairItem({ pair, selected, onClick, price, previousClose }: Props) {
+  const change = price && previousClose ? formatPriceChange(price, previousClose) : null
 
   return (
     <button
@@ -43,7 +24,7 @@ export function PairItem({ pair, selected, onClick }: Props) {
     >
       <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-white">{pair.displayName}</span>
-        {price > 0 && (
+        {price != null && price > 0 && (
           <span className="text-sm font-mono text-gray-300">
             {formatPrice(price, pair.decimals)}
           </span>
