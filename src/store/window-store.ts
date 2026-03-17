@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { DEFAULT_PERIOD_BY_TIMEFRAME } from '@/config/constants'
+import { DEFAULT_PERIOD_BY_TIMEFRAME, MAX_PERIODS_BY_TIMEFRAME } from '@/config/constants'
 import { cloneIndicators } from '@/config/indicators'
 import type { Period, TimeFrame } from '@/types/candle'
 import type { IndicatorEntry } from '@/types/indicators'
@@ -11,6 +11,7 @@ export interface ChartWindow {
   period: Period
   goToTimestamp: number | null
   indicators: IndicatorEntry[]
+  showTrades: boolean
   x: number
   y: number
   width: number
@@ -37,6 +38,12 @@ interface WindowStore {
   setWindowGoTo: (id: string, timestamp: number) => void
   clearWindowGoTo: (id: string) => void
   toggleWindowIndicator: (id: string, indicatorId: string) => void
+  toggleShowTrades: (id: string) => void
+  navigateToTrade: (
+    pairId: string,
+    timestamp: number,
+    canvasSize?: { width: number; height: number },
+  ) => void
 }
 
 export const useWindowStore = create<WindowStore>((set, get) => ({
@@ -66,6 +73,7 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
       period: DEFAULT_PERIOD_BY_TIMEFRAME[timeframe],
       goToTimestamp: null,
       indicators: cloneIndicators(),
+      showTrades: false,
       x: 20,
       y: 20,
       width,
@@ -148,4 +156,43 @@ export const useWindowStore = create<WindowStore>((set, get) => ({
           : w,
       ),
     })),
+
+  toggleShowTrades: (id) =>
+    set((state) => ({
+      windows: state.windows.map((w) => (w.id === id ? { ...w, showTrades: !w.showTrades } : w)),
+    })),
+
+  navigateToTrade: (pairId, timestamp, canvasSize) => {
+    const state = get()
+    let win = state.windows.find((w) => w.pairId === pairId)
+
+    if (!win) {
+      get().addWindow(pairId, canvasSize)
+      win = get().windows.find((w) => w.pairId === pairId)
+      if (!win) return
+    }
+
+    // Pick timeframe that can cover the trade date
+    // Use '60' (1H) as default for historical trades, or '15' for recent
+    const nowSec = Math.floor(Date.now() / 1000)
+    const age = nowSec - timestamp
+    let tf: TimeFrame
+    if (age < 5 * 86_400) tf = '5'
+    else if (age < 30 * 86_400) tf = '15'
+    else if (age < 365 * 86_400) tf = '60'
+    else tf = 'D'
+
+    // Pick smallest period that contains the trade
+    const allowedPeriods = MAX_PERIODS_BY_TIMEFRAME[tf]
+    const period = allowedPeriods[Math.min(1, allowedPeriods.length - 1)]
+
+    get().focusWindow(win.id)
+    set((s) => ({
+      windows: s.windows.map((w) =>
+        w.id === win.id
+          ? { ...w, timeframe: tf, period, goToTimestamp: timestamp, showTrades: true }
+          : w,
+      ),
+    }))
+  },
 }))

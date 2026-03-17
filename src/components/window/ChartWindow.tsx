@@ -5,7 +5,9 @@ import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { LatestButton } from '@/components/chart/LatestButton'
 import { PeriodSelector } from '@/components/chart/PeriodSelector'
 import { TimeframeSelector } from '@/components/chart/TimeframeSelector'
+import { TradeToggle } from '@/components/chart/TradeToggle'
 import { getPairById, PAIRS } from '@/config/pairs'
+import { TRADE_HISTORY } from '@/config/trade-history'
 import { useChartData } from '@/hooks/use-chart-data'
 import { useDrag } from '@/hooks/use-drag'
 import { useResize } from '@/hooks/use-resize'
@@ -34,6 +36,11 @@ export function ChartWindow({ windowId }: Props) {
 
   const indicators = win?.indicators
   const enabledIndicators = useMemo(() => indicators?.filter((i) => i.enabled) ?? [], [indicators])
+  const showTrades = win?.showTrades ?? false
+  const pairTrades = useMemo(
+    () => (showTrades ? TRADE_HISTORY.filter((t) => t.pairId === pair.id) : []),
+    [showTrades, pair.id],
+  )
 
   const { onPointerDown: onDragDown } = useDrag({
     onDrag: (x, y) => updatePosition(windowId, x, y),
@@ -117,10 +124,11 @@ export function ChartWindow({ windowId }: Props) {
         </div>
       </div>
 
-      {/* Controls row 2: period + go-to + latest */}
+      {/* Controls row 2: period + go-to + latest + trades */}
       <div className="flex items-center gap-2 px-2 py-1 border-b border-gray-700">
         <PeriodSelector windowId={windowId} />
         <div className="ml-auto flex items-center gap-1">
+          <TradeToggle windowId={windowId} />
           <GoToDateInput windowId={windowId} />
           <LatestButton windowId={windowId} />
         </div>
@@ -136,6 +144,7 @@ export function ChartWindow({ windowId }: Props) {
           <CandlestickChart
             data={candles}
             indicators={enabledIndicators}
+            trades={pairTrades}
             goToTimestamp={win.goToTimestamp}
             onNavigated={onNavigated}
           />

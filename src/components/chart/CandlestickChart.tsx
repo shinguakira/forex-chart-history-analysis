@@ -2,9 +2,11 @@ import {
   CandlestickSeries,
   CrosshairMode,
   createChart,
+  createSeriesMarkers,
   HistogramSeries,
   type IChartApi,
   type ISeriesApi,
+  type ISeriesMarkersPluginApi,
   LineSeries,
 } from 'lightweight-charts'
 import { useEffect, useRef } from 'react'
@@ -12,10 +14,12 @@ import { CHART_COLORS } from '@/config/constants'
 import { bollingerBands, ema, type LinePoint, macd, rsi, sma } from '@/lib/indicators'
 import type { Candle } from '@/types/candle'
 import type { IndicatorEntry } from '@/types/indicators'
+import type { Trade } from '@/types/trade'
 
 interface Props {
   data: Candle[]
   indicators: IndicatorEntry[]
+  trades?: Trade[]
   goToTimestamp?: number | null
   onNavigated?: () => void
 }
@@ -26,7 +30,7 @@ function toTimeSeries(points: LinePoint[]) {
   return points.map((p) => ({ time: p.time as UTCTimestamp, value: p.value }))
 }
 
-export function CandlestickChart({ data, indicators, goToTimestamp, onNavigated }: Props) {
+export function CandlestickChart({ data, indicators, trades, goToTimestamp, onNavigated }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const rsiContainerRef = useRef<HTMLDivElement>(null)
   const macdContainerRef = useRef<HTMLDivElement>(null)
@@ -41,6 +45,7 @@ export function CandlestickChart({ data, indicators, goToTimestamp, onNavigated 
   const macdLineRef = useRef<ISeriesApi<'Line'> | null>(null)
   const macdSignalRef = useRef<ISeriesApi<'Line'> | null>(null)
   const macdHistRef = useRef<ISeriesApi<'Histogram'> | null>(null)
+  const markersPluginRef = useRef<ISeriesMarkersPluginApi<number> | null>(null)
 
   const enabledIndicators = indicators.filter((i) => i.enabled)
 
@@ -301,6 +306,77 @@ export function CandlestickChart({ data, indicators, goToTimestamp, onNavigated 
       }
     }
   }, [data, enabledIndicators, hasRsi, hasMacd])
+
+  // ─── Trade markers ───
+  useEffect(() => {
+    if (!candleSeriesRef.current) return
+
+    if (markersPluginRef.current) {
+      markersPluginRef.current.detach()
+      markersPluginRef.current = null
+    }
+
+    if (!trades || trades.length === 0 || data.length === 0) return
+
+    const dataStart = data[0].time
+    const dataEnd = data[data.length - 1].time
+
+    type SeriesMarker = {
+      time: UTCTimestamp
+      position: 'aboveBar' | 'belowBar'
+      shape: 'arrowUp' | 'arrowDown' | 'circle'
+      color: string
+      text: string
+      size: number
+    }
+
+    const markers: SeriesMarker[] = []
+
+    for (const trade of trades) {
+      const openTs = Math.floor(new Date(trade.openDate).getTime() / 1000)
+      const closeTs = Math.floor(new Date(trade.closeDate).getTime() / 1000)
+      const isBull = trade.direction === 'bull'
+      const plText = `${trade.pl >= 0 ? '+' : ''}${trade.pl.toLocaleString()}`
+
+      // Entry marker — arrow showing direction, positioned at entry
+      if (openTs >= dataStart && openTs <= dataEnd) {
+        markers.push({
+          time: openTs as UTCTimestamp,
+          position: isBull ? 'belowBar' : 'aboveBar',
+          shape: isBull ? 'arrowUp' : 'arrowDown',
+          color: '#3b82f6',
+          text: `▶ ${isBull ? 'BUY' : 'SELL'} x${trade.size} @${trade.openPrice.toFixed(3)}`,
+          size: 2,
+        })
+      }
+
+      // Exit marker — circle with P&L
+      if (closeTs >= dataStart && closeTs <= dataEnd) {
+        markers.push({
+          time: closeTs as UTCTimestamp,
+          position: isBull ? 'aboveBar' : 'belowBar',
+          shape: 'circle',
+          color: '#ffffff',
+          text: `◼ ${plText} @${trade.closePrice.toFixed(3)}`,
+          size: 2,
+        })
+      }
+    }
+
+    if (markers.length === 0) return
+
+    markers.sort((a, b) => a.time - b.time)
+
+    const plugin = createSeriesMarkers(candleSeriesRef.current, markers)
+    markersPluginRef.current = plugin
+
+    return () => {
+      if (markersPluginRef.current) {
+        markersPluginRef.current.detach()
+        markersPluginRef.current = null
+      }
+    }
+  }, [trades, data])
 
   // ─── Navigate to specific timestamp ───
   useEffect(() => {
