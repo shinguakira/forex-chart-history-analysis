@@ -10,11 +10,14 @@ import {
 import { useEffect, useRef } from 'react'
 import { CHART_COLORS } from '@/config/constants'
 import { bollingerBands, ema, type LinePoint, macd, rsi, sma } from '@/lib/indicators'
-import { useIndicatorStore } from '@/store/indicator-store'
 import type { Candle } from '@/types/candle'
+import type { IndicatorEntry } from '@/types/indicators'
 
 interface Props {
   data: Candle[]
+  indicators: IndicatorEntry[]
+  goToTimestamp?: number | null
+  onNavigated?: () => void
 }
 
 type UTCTimestamp = import('lightweight-charts').UTCTimestamp
@@ -23,7 +26,7 @@ function toTimeSeries(points: LinePoint[]) {
   return points.map((p) => ({ time: p.time as UTCTimestamp, value: p.value }))
 }
 
-export function CandlestickChart({ data }: Props) {
+export function CandlestickChart({ data, indicators, goToTimestamp, onNavigated }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const rsiContainerRef = useRef<HTMLDivElement>(null)
   const macdContainerRef = useRef<HTMLDivElement>(null)
@@ -39,7 +42,6 @@ export function CandlestickChart({ data }: Props) {
   const macdSignalRef = useRef<ISeriesApi<'Line'> | null>(null)
   const macdHistRef = useRef<ISeriesApi<'Histogram'> | null>(null)
 
-  const indicators = useIndicatorStore((s) => s.indicators)
   const enabledIndicators = indicators.filter((i) => i.enabled)
 
   const hasRsi = enabledIndicators.some((i) => i.config.type === 'rsi')
@@ -300,9 +302,24 @@ export function CandlestickChart({ data }: Props) {
     }
   }, [data, enabledIndicators, hasRsi, hasMacd])
 
+  // ─── Navigate to specific timestamp ───
+  useEffect(() => {
+    if (goToTimestamp == null || !chartRef.current || data.length === 0) return
+
+    const targetIdx = data.findIndex((c) => c.time >= goToTimestamp)
+    const idx = targetIdx === -1 ? data.length - 1 : targetIdx
+    const barsFromRight = data.length - 1 - idx
+
+    chartRef.current.timeScale().scrollToPosition(-barsFromRight, false)
+    rsiChartRef.current?.timeScale().scrollToPosition(-barsFromRight, false)
+    macdChartRef.current?.timeScale().scrollToPosition(-barsFromRight, false)
+
+    onNavigated?.()
+  }, [goToTimestamp, data, onNavigated])
+
   return (
-    <div className="flex flex-col w-full h-full">
-      <div ref={containerRef} className="flex-1 min-h-[300px]" />
+    <div className="flex flex-col w-full h-full overflow-hidden">
+      <div ref={containerRef} className="flex-1 overflow-hidden" />
       {hasRsi && (
         <div className="border-t border-gray-800">
           <div className="px-2 py-0.5 text-xs text-gray-500">RSI</div>

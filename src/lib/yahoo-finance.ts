@@ -1,4 +1,5 @@
-import type { Candle, TimeFrame } from '@/types/candle'
+import { PERIOD_SECONDS, POLLING_INTERVAL } from '@/config/constants'
+import type { Candle, Period, TimeFrame } from '@/types/candle'
 import type { YahooChartResponse } from '@/types/yahoo-finance'
 
 const INTERVAL_MAP: Record<TimeFrame, string> = {
@@ -9,19 +10,6 @@ const INTERVAL_MAP: Record<TimeFrame, string> = {
   '240': '4h',
   D: '1d',
   W: '1wk',
-}
-
-// Range limits balanced for performance (~200-300KB, <3000 candles)
-// 1m/1d=1,439本(118KB) | 5m/5d=~1,440本(~120KB) | 15m/1mo=1,920本(164KB)
-// 1h/6mo=~3,000本(~250KB) | 4h/1y=~1,500本(~150KB) | 1d/10y=2,611本(271KB)
-const RANGE_MAP: Record<TimeFrame, string> = {
-  '1': '1d',
-  '5': '5d',
-  '15': '1mo',
-  '60': '6mo',
-  '240': '1y',
-  D: '10y',
-  W: 'max',
 }
 
 function getBaseUrl(): string {
@@ -43,6 +31,20 @@ async function fetchWithRetry(url: string, retries = 2): Promise<Response> {
   throw new Error('Max retries exceeded')
 }
 
+export function computeDateRange(
+  period: Period,
+  goToTimestamp: number | null,
+): { period1: number; period2: number } {
+  const seconds = PERIOD_SECONDS[period]
+  if (goToTimestamp != null) {
+    return { period1: goToTimestamp - seconds, period2: goToTimestamp }
+  }
+  // Round to nearest polling interval for query key stability
+  const now = Math.floor(Date.now() / 1000)
+  const rounded = Math.floor(now / (POLLING_INTERVAL / 1000)) * (POLLING_INTERVAL / 1000)
+  return { period1: rounded - seconds, period2: rounded }
+}
+
 export interface FetchCandlesResult {
   candles: Candle[]
   regularMarketPrice: number
@@ -52,11 +54,12 @@ export interface FetchCandlesResult {
 export async function fetchCandles(
   yahooSymbol: string,
   resolution: TimeFrame,
+  period1: number,
+  period2: number,
 ): Promise<FetchCandlesResult> {
   const interval = INTERVAL_MAP[resolution]
-  const range = RANGE_MAP[resolution]
   const base = getBaseUrl()
-  const url = `${base}/v8/finance/chart/${encodeURIComponent(yahooSymbol)}?interval=${interval}&range=${range}`
+  const url = `${base}/v8/finance/chart/${encodeURIComponent(yahooSymbol)}?interval=${interval}&period1=${period1}&period2=${period2}`
 
   const res = await fetchWithRetry(url)
   if (!res.ok) throw new Error(`Yahoo Finance API error: ${res.status}`)

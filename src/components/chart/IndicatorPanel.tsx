@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useIndicatorStore } from '@/store/indicator-store'
+import { useWindowStore } from '@/store/window-store'
 
 const INDICATOR_LABELS: Record<string, { label: string; group: string }> = {
   'sma-20': { label: 'SMA 20', group: 'Moving Averages' },
@@ -20,14 +20,19 @@ function getColor(config: { color?: string; type: string }): string | null {
   return null
 }
 
-export function IndicatorPanel() {
+interface Props {
+  windowId: string
+}
+
+export function IndicatorPanel({ windowId }: Props) {
   const [open, setOpen] = useState(false)
-  const indicators = useIndicatorStore((s) => s.indicators)
-  const toggle = useIndicatorStore((s) => s.toggleIndicator)
+  const indicators = useWindowStore(
+    (s) => s.windows.find((w) => w.id === windowId)?.indicators ?? [],
+  )
+  const toggle = useWindowStore((s) => s.toggleWindowIndicator)
 
   const enabledCount = indicators.filter((i) => i.enabled).length
 
-  // Group indicators
   const groups = new Map<string, typeof indicators>()
   for (const ind of indicators) {
     const meta = INDICATOR_LABELS[ind.id]
@@ -41,10 +46,10 @@ export function IndicatorPanel() {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded transition-colors bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white"
+        className="flex items-center gap-1.5 px-2 py-1 text-xs rounded transition-colors bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white"
       >
         <svg
-          className="w-4 h-4"
+          className="w-3.5 h-3.5"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -53,9 +58,9 @@ export function IndicatorPanel() {
           <path d="M3 3v18h18" />
           <path d="M7 16l4-8 4 4 4-6" />
         </svg>
-        Indicators
+        Ind
         {enabledCount > 0 && (
-          <span className="ml-1 px-1.5 py-0.5 text-xs rounded-full bg-blue-600 text-white">
+          <span className="ml-0.5 px-1 py-0.5 text-xs rounded-full bg-blue-600 text-white leading-none">
             {enabledCount}
           </span>
         )}
@@ -64,14 +69,14 @@ export function IndicatorPanel() {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-1 z-50 w-64 bg-gray-900 border border-gray-700 rounded-lg shadow-xl overflow-hidden">
+          <div className="absolute right-0 top-full mt-1 z-50 w-56 bg-gray-900 border border-gray-700 rounded-lg shadow-xl overflow-hidden">
             <div className="px-3 py-2 border-b border-gray-700">
-              <h3 className="text-sm font-semibold text-white">Technical Indicators</h3>
+              <h3 className="text-xs font-semibold text-white">Technical Indicators</h3>
             </div>
-            <div className="max-h-80 overflow-y-auto">
+            <div className="max-h-72 overflow-y-auto">
               {[...groups.entries()].map(([groupName, items]) => (
                 <div key={groupName}>
-                  <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-800/50">
+                  <div className="px-3 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-800/50">
                     {groupName}
                   </div>
                   {items.map((ind) => {
@@ -81,11 +86,11 @@ export function IndicatorPanel() {
                       <button
                         type="button"
                         key={ind.id}
-                        onClick={() => toggle(ind.id)}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-gray-800 transition-colors"
+                        onClick={() => toggle(windowId, ind.id)}
+                        className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-gray-800 transition-colors"
                       >
                         <div
-                          className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                          className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-colors ${
                             ind.enabled
                               ? 'bg-blue-600 border-blue-600'
                               : 'border-gray-600 bg-transparent'
@@ -93,7 +98,7 @@ export function IndicatorPanel() {
                         >
                           {ind.enabled && (
                             <svg
-                              className="w-3 h-3 text-white"
+                              className="w-2.5 h-2.5 text-white"
                               viewBox="0 0 24 24"
                               fill="none"
                               stroke="currentColor"

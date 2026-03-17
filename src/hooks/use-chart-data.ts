@@ -1,5 +1,5 @@
 import type { PairConfig } from '@/config/pairs'
-import type { Candle, TimeFrame } from '@/types/candle'
+import type { Candle, Period, TimeFrame } from '@/types/candle'
 import { useHistoricalData } from './use-historical-data'
 
 interface ChartDataResult {
@@ -9,8 +9,13 @@ interface ChartDataResult {
   isLoading: boolean
 }
 
-export function useChartData(pair: PairConfig, timeframe: TimeFrame): ChartDataResult {
-  const { data, isLoading } = useHistoricalData(pair, timeframe)
+export function useChartData(
+  pair: PairConfig,
+  timeframe: TimeFrame,
+  period: Period,
+  goToTimestamp: number | null,
+): ChartDataResult {
+  const { data, isLoading } = useHistoricalData(pair, timeframe, period, goToTimestamp)
   return {
     candles: data?.candles ?? [],
     regularMarketPrice: data?.regularMarketPrice ?? 0,
