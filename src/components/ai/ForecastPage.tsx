@@ -106,36 +106,38 @@ export function ForecastPage() {
         {/* Completed forecast */}
         {forecastText && status !== 'streaming' && (
           <div>
-            {cached && (
-              <div className="text-xs text-gray-500 mb-4 flex items-center gap-2">
-                <span>Generated: {formatDateJST(cached.createdAt)}</span>
-                {isCacheStale && (
-                  <span className="text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded-full text-[10px] font-medium">
-                    stale
-                  </span>
-                )}
+            <div className="flex items-center justify-between mb-4 sticky top-0 z-10 bg-[#0f1117] py-2">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  className="px-3 py-1.5 text-xs rounded-lg bg-gray-800 text-gray-400 hover:text-gray-200 hover:bg-gray-700 transition-colors"
+                  onClick={handleRegenerate}
+                >
+                  Regenerate
+                </button>
+                <button
+                  type="button"
+                  className="px-3 py-1.5 text-xs rounded-lg bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 transition-colors"
+                  onClick={() => {
+                    setChatContext('forecast')
+                    setChatOpen(true)
+                  }}
+                >
+                  Chat about forecast
+                </button>
               </div>
-            )}
-            <StructuredResponse text={forecastText} />
-            <div className="flex gap-2 mt-5">
-              <button
-                type="button"
-                className="px-3 py-1.5 text-xs rounded-lg bg-gray-800 text-gray-400 hover:text-gray-200 hover:bg-gray-700 transition-colors"
-                onClick={handleRegenerate}
-              >
-                Regenerate
-              </button>
-              <button
-                type="button"
-                className="px-3 py-1.5 text-xs rounded-lg bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 transition-colors"
-                onClick={() => {
-                  setChatContext('forecast')
-                  setChatOpen(true)
-                }}
-              >
-                Chat about forecast
-              </button>
+              {cached && (
+                <div className="text-xs text-gray-500 flex items-center gap-2">
+                  <span>{formatDateJST(cached.createdAt)}</span>
+                  {isCacheStale && (
+                    <span className="text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                      stale
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
+            <StructuredResponse text={forecastText} />
           </div>
         )}
       </div>

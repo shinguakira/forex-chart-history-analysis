@@ -89,8 +89,7 @@ export function TradeReviewCard({ trade, allTrades }: Props) {
 
       {displayText && status !== 'streaming' && (
         <div>
-          <StructuredResponse text={displayText} />
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2 mb-3">
             <button
               type="button"
               className="px-3 py-1.5 text-xs rounded-lg bg-gray-800 text-gray-400 hover:text-gray-200 hover:bg-gray-700 transition-colors"
@@ -110,6 +109,7 @@ export function TradeReviewCard({ trade, allTrades }: Props) {
               Chat about this trade
             </button>
           </div>
+          <StructuredResponse text={displayText} />
         </div>
       )}
 

@@ -201,8 +201,7 @@ export function ReviewPage() {
 
             {portfolioText && status !== 'streaming' && (
               <div>
-                <StructuredResponse text={portfolioText} />
-                <div className="flex gap-2 mt-5">
+                <div className="flex items-center gap-3 mb-4 sticky top-0 z-10 bg-[#0f1117] py-2">
                   <button
                     type="button"
                     className="px-3 py-1.5 text-xs rounded-lg bg-gray-800 text-gray-400 hover:text-gray-200 hover:bg-gray-700 transition-colors"
@@ -221,6 +220,7 @@ export function ReviewPage() {
                     Chat about portfolio
                   </button>
                 </div>
+                <StructuredResponse text={portfolioText} />
               </div>
             )}
           </div>
