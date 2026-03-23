@@ -10,10 +10,11 @@ export function ChatPanel() {
   const { streaming, currentToken, error, sendMessage } = useAIChat()
 
   const trade =
-    chatContext && chatContext !== 'portfolio'
+    chatContext && chatContext !== 'portfolio' && chatContext !== 'forecast'
       ? (TRADE_HISTORY.find((t) => t.ref === chatContext) ?? null)
       : null
   const { data: tradeCtx } = useTradeContext(trade)
+  const forecastCache = useAIStore((s) => s.reviewCache.forecast)
 
   if (!chatOpen) return null
 
@@ -25,12 +26,16 @@ export function ChatPanel() {
   const contextLabel =
     chatContext === 'portfolio'
       ? 'Portfolio'
-      : trade
-        ? `${trade.pairId} ${trade.openDate}`
-        : 'General'
+      : chatContext === 'forecast'
+        ? 'Forecast'
+        : trade
+          ? `${trade.pairId} ${trade.openDate}`
+          : 'General'
 
   const handleSend = (text: string) => {
-    if (chatContext === 'portfolio') {
+    if (chatContext === 'forecast') {
+      sendMessage(text, 'forecast', forecastCache?.content)
+    } else if (chatContext === 'portfolio') {
       sendMessage(text, 'portfolio')
     } else if (tradeCtx) {
       sendMessage(text, tradeCtx)
@@ -67,7 +72,12 @@ export function ChatPanel() {
       <div ref={scrollToBottom} className="flex-1 overflow-y-auto p-4">
         {chatMessages.length === 0 && !streaming && (
           <div className="text-xs text-gray-600 text-center mt-8">
-            Ask questions about your {chatContext === 'portfolio' ? 'portfolio' : 'trade'}
+            Ask questions about your{' '}
+            {chatContext === 'portfolio'
+              ? 'portfolio'
+              : chatContext === 'forecast'
+                ? 'forecast'
+                : 'trade'}
           </div>
         )}
 

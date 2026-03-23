@@ -1,6 +1,7 @@
 import { useAIForecast } from '@/hooks/use-ai-forecast'
 import { formatDateJST } from '@/lib/date-utils'
 import { useAIStore } from '@/store/ai-store'
+import { ChatPanel } from './ChatPanel'
 import { ReviewSkeleton } from './ReviewSkeleton'
 import { SettingsDialog } from './SettingsDialog'
 import { StreamingText } from './StreamingText'
@@ -8,7 +9,7 @@ import { StreamingText } from './StreamingText'
 const STALE_MS = 10 * 60 * 1000 // 10 minutes
 
 export function ForecastPage() {
-  const { apiKey, setSettingsOpen } = useAIStore()
+  const { apiKey, chatOpen, setSettingsOpen, setChatContext, setChatOpen } = useAIStore()
   const { status, text, error, progress, generateForecast, reset, cancel } = useAIForecast()
   const cached = useAIStore((s) => s.reviewCache.forecast)
 
@@ -26,7 +27,7 @@ export function ForecastPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f1117] text-gray-200 p-6">
+    <div className={`min-h-screen bg-[#0f1117] text-gray-200 p-6 ${chatOpen ? 'mr-[400px]' : ''}`}>
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -116,10 +117,46 @@ export function ForecastPage() {
               >
                 Regenerate
               </button>
+              <button
+                type="button"
+                className="px-3 py-1 text-xs rounded bg-gray-800 text-gray-400 hover:text-gray-200"
+                onClick={() => {
+                  setChatContext('forecast')
+                  setChatOpen(true)
+                }}
+              >
+                Chat about forecast
+              </button>
             </div>
           </div>
         )}
       </div>
+
+      {/* Chat Panel */}
+      <ChatPanel />
+
+      {/* Chat toggle button */}
+      {!chatOpen && isConfigured && forecastText && (
+        <button
+          type="button"
+          className="fixed bottom-6 right-6 w-12 h-12 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg hover:bg-blue-500 z-30"
+          onClick={() => {
+            setChatContext('forecast')
+            setChatOpen(true)
+          }}
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+        </button>
+      )}
 
       {/* Settings Dialog */}
       <SettingsDialog />

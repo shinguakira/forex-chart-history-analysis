@@ -11,7 +11,11 @@ export function useAIChat() {
   const abortRef = useRef<AbortController | null>(null)
 
   const sendMessage = useCallback(
-    async (userText: string, context: 'portfolio' | TradeContext, summaryText?: string) => {
+    async (
+      userText: string,
+      context: 'portfolio' | 'forecast' | TradeContext,
+      summaryText?: string,
+    ) => {
       const store = useAIStore.getState()
       const provider = createProvider({
         type: store.provider,
