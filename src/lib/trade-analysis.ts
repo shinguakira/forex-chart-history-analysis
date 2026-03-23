@@ -1,3 +1,4 @@
+import { getJSTDayOfWeek, getJSTHour } from '@/lib/date-utils'
 import type { Trade } from '@/types/trade'
 
 // ─── Summary ───
@@ -226,7 +227,7 @@ export function computeHourlyAnalysis(trades: Trade[]): HourBucket[] {
   }))
 
   for (const t of trades) {
-    const h = new Date(t.openDate).getHours()
+    const h = getJSTHour(t.openDate)
     buckets[h].count++
     if (t.pl > 0) buckets[h].wins++
     buckets[h].pl += t.pl
@@ -260,7 +261,7 @@ export function computeDayOfWeekAnalysis(trades: Trade[]): DayOfWeekBucket[] {
   }))
 
   for (const t of trades) {
-    const d = new Date(t.openDate).getDay()
+    const d = getJSTDayOfWeek(t.openDate)
     buckets[d].count++
     if (t.pl > 0) buckets[d].wins++
     buckets[d].pl += t.pl

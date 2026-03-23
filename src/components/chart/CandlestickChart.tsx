@@ -11,6 +11,7 @@ import {
 } from 'lightweight-charts'
 import { useEffect, useRef } from 'react'
 import { CHART_COLORS } from '@/config/constants'
+import { formatCandleTimeJST, formatTimeOnlyJST } from '@/lib/date-utils'
 import { bollingerBands, ema, type LinePoint, macd, rsi, sma } from '@/lib/indicators'
 import type { Candle } from '@/types/candle'
 import type { IndicatorEntry } from '@/types/indicators'
@@ -66,10 +67,14 @@ export function CandlestickChart({ data, indicators, trades, goToTimestamp, onNa
         horzLines: { color: CHART_COLORS.grid },
       },
       crosshair: { mode: CrosshairMode.Normal },
+      localization: {
+        timeFormatter: (t: number) => formatCandleTimeJST(t),
+      },
       timeScale: {
         timeVisible: true,
         secondsVisible: false,
         borderColor: CHART_COLORS.grid,
+        tickMarkFormatter: (t: number) => formatTimeOnlyJST(t),
       },
       rightPriceScale: { borderColor: CHART_COLORS.grid },
     })
@@ -120,7 +125,15 @@ export function CandlestickChart({ data, indicators, trades, goToTimestamp, onNa
         horzLines: { color: CHART_COLORS.grid },
       },
       crosshair: { mode: CrosshairMode.Normal },
-      timeScale: { timeVisible: true, secondsVisible: false, borderColor: CHART_COLORS.grid },
+      localization: {
+        timeFormatter: (t: number) => formatCandleTimeJST(t),
+      },
+      timeScale: {
+        timeVisible: true,
+        secondsVisible: false,
+        borderColor: CHART_COLORS.grid,
+        tickMarkFormatter: (t: number) => formatTimeOnlyJST(t),
+      },
       rightPriceScale: { borderColor: CHART_COLORS.grid },
       height: 120,
     })
@@ -166,7 +179,15 @@ export function CandlestickChart({ data, indicators, trades, goToTimestamp, onNa
         horzLines: { color: CHART_COLORS.grid },
       },
       crosshair: { mode: CrosshairMode.Normal },
-      timeScale: { timeVisible: true, secondsVisible: false, borderColor: CHART_COLORS.grid },
+      localization: {
+        timeFormatter: (t: number) => formatCandleTimeJST(t),
+      },
+      timeScale: {
+        timeVisible: true,
+        secondsVisible: false,
+        borderColor: CHART_COLORS.grid,
+        tickMarkFormatter: (t: number) => formatTimeOnlyJST(t),
+      },
       rightPriceScale: { borderColor: CHART_COLORS.grid },
       height: 140,
     })

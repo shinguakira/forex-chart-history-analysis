@@ -1,17 +1,8 @@
 import { useMemo, useState } from 'react'
 import { CANVAS_ID } from '@/components/window/WindowCanvas'
 import { TRADE_HISTORY } from '@/config/trade-history'
+import { formatDateJST } from '@/lib/date-utils'
 import { useWindowStore } from '@/store/window-store'
-
-function formatDate(iso: string) {
-  const d = new Date(iso)
-  const y = d.getFullYear()
-  const mo = String(d.getMonth() + 1).padStart(2, '0')
-  const dd = String(d.getDate()).padStart(2, '0')
-  const hh = String(d.getHours()).padStart(2, '0')
-  const mm = String(d.getMinutes()).padStart(2, '0')
-  return `${y}/${mo}/${dd} ${hh}:${mm}`
-}
 
 function getCanvasSize() {
   const el = document.getElementById(CANVAS_ID)
@@ -100,10 +91,10 @@ export function TradeHistory() {
                   </span>
                 </div>
                 <div className="flex items-center gap-1 mt-0.5 text-gray-500">
-                  <span className="text-[10px]">{formatDate(trade.openDate)}</span>
+                  <span className="text-[10px]">{formatDateJST(trade.openDate)}</span>
                   <span className="text-gray-600 font-mono">{trade.openPrice.toFixed(3)}</span>
                   <span className="text-gray-600">→</span>
-                  <span className="text-[10px]">{formatDate(trade.closeDate)}</span>
+                  <span className="text-[10px]">{formatDateJST(trade.closeDate)}</span>
                   <span className="text-gray-600 font-mono">{trade.closePrice.toFixed(3)}</span>
                 </div>
               </div>

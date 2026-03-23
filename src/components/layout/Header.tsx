@@ -28,6 +28,26 @@ export function Header() {
           >
             Analysis
           </Link>
+          <Link
+            to="/review"
+            className={`px-3 py-1 text-xs rounded transition-colors ${
+              pathname === '/review'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+            }`}
+          >
+            Review
+          </Link>
+          <Link
+            to="/forecast"
+            className={`px-3 py-1 text-xs rounded transition-colors ${
+              pathname === '/forecast'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+            }`}
+          >
+            Forecast
+          </Link>
         </nav>
       </div>
       <span className="text-xs text-gray-500">30s auto-refresh</span>

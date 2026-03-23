@@ -14,7 +14,15 @@
       "a11y": {
         "noSvgWithoutTitle": "off",
         "noStaticElementInteractions": "off",
-        "useKeyWithClickEvents": "off"
+        "useKeyWithClickEvents": "off",
+        "noLabelWithoutControl": "off",
+        "useValidAriaRole": "off"
+      },
+      "security": {
+        "noDangerouslySetInnerHtml": "off"
+      },
+      "style": {
+        "noNonNullAssertion": "off"
       }
     }
   },

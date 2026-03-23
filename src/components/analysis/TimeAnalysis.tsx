@@ -23,7 +23,7 @@ export function TimeAnalysis({ trades }: Props) {
       <div className="space-y-4">
         {/* Hourly trade count */}
         <div>
-          <div className="text-[10px] text-gray-500 uppercase mb-1">Trades by Hour (UTC)</div>
+          <div className="text-[10px] text-gray-500 uppercase mb-1">Trades by Hour (JST)</div>
           <MiniBarChart
             bars={hourly.map((h) => ({
               label: String(h.hour),

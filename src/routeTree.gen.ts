@@ -9,10 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ReviewRouteImport } from './routes/review'
+import { Route as ForecastRouteImport } from './routes/forecast'
 import { Route as AnalysisRouteImport } from './routes/analysis'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PairPairIdRouteImport } from './routes/pair.$pairId'
 
+const ReviewRoute = ReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForecastRoute = ForecastRouteImport.update({
+  id: '/forecast',
+  path: '/forecast',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AnalysisRoute = AnalysisRouteImport.update({
   id: '/analysis',
   path: '/analysis',
@@ -32,35 +44,57 @@ const PairPairIdRoute = PairPairIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analysis': typeof AnalysisRoute
+  '/forecast': typeof ForecastRoute
+  '/review': typeof ReviewRoute
   '/pair/$pairId': typeof PairPairIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analysis': typeof AnalysisRoute
+  '/forecast': typeof ForecastRoute
+  '/review': typeof ReviewRoute
   '/pair/$pairId': typeof PairPairIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/analysis': typeof AnalysisRoute
+  '/forecast': typeof ForecastRoute
+  '/review': typeof ReviewRoute
   '/pair/$pairId': typeof PairPairIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/analysis' | '/pair/$pairId'
+  fullPaths: '/' | '/analysis' | '/forecast' | '/review' | '/pair/$pairId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/analysis' | '/pair/$pairId'
-  id: '__root__' | '/' | '/analysis' | '/pair/$pairId'
+  to: '/' | '/analysis' | '/forecast' | '/review' | '/pair/$pairId'
+  id: '__root__' | '/' | '/analysis' | '/forecast' | '/review' | '/pair/$pairId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalysisRoute: typeof AnalysisRoute
+  ForecastRoute: typeof ForecastRoute
+  ReviewRoute: typeof ReviewRoute
   PairPairIdRoute: typeof PairPairIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/review': {
+      id: '/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof ReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forecast': {
+      id: '/forecast'
+      path: '/forecast'
+      fullPath: '/forecast'
+      preLoaderRoute: typeof ForecastRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/analysis': {
       id: '/analysis'
       path: '/analysis'
@@ -88,6 +122,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalysisRoute: AnalysisRoute,
+  ForecastRoute: ForecastRoute,
+  ReviewRoute: ReviewRoute,
   PairPairIdRoute: PairPairIdRoute,
 }
 export const routeTree = rootRouteImport
