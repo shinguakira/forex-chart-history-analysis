@@ -147,7 +147,7 @@ export function buildPortfolioReviewMessages(
 }
 
 export function buildChatSystemMessage(
-  context: 'portfolio' | 'forecast' | TradeContext,
+  context: 'portfolio' | 'forecast' | 'trade-review',
   summaryText?: string,
 ): string {
   let contextInfo = `${SYSTEM_PROMPT}\n\n`
@@ -158,10 +158,11 @@ export function buildChatSystemMessage(
     contextInfo += `<forecast_result>\n${summaryText}\n</forecast_result>\n`
   } else if (context === 'portfolio' && summaryText) {
     contextInfo += 'The user is asking follow-up questions about their portfolio review.\n\n'
-    contextInfo += summaryText
-  } else if (context !== 'portfolio' && context !== 'forecast') {
-    contextInfo += 'The user is asking follow-up questions about this specific trade:\n\n'
-    contextInfo += formatTradeContextBlock(context)
+    contextInfo += `<review_result>\n${summaryText}\n</review_result>\n`
+  } else if (context === 'trade-review' && summaryText) {
+    contextInfo +=
+      'The user is asking follow-up questions about an AI review of a specific trade.\n\n'
+    contextInfo += `<review_result>\n${summaryText}\n</review_result>\n`
   }
 
   return contextInfo

@@ -1,6 +1,5 @@
 import { getPairById } from '@/config/pairs'
 import { useAIReview } from '@/hooks/use-ai-review'
-import { useTradeContext } from '@/hooks/use-trade-context'
 import { useAIStore } from '@/store/ai-store'
 import type { Trade } from '@/types/trade'
 import { ReviewSkeleton } from './ReviewSkeleton'
@@ -12,7 +11,6 @@ interface Props {
 }
 
 export function TradeReviewCard({ trade, allTrades }: Props) {
-  const { data: ctx, isLoading: ctxLoading, error: ctxError } = useTradeContext(trade)
   const { status, text, error, reviewTrade, reset, cancel } = useAIReview()
   const cached = useAIStore((s) => s.reviewCache[trade.ref])
 
@@ -29,8 +27,7 @@ export function TradeReviewCard({ trade, allTrades }: Props) {
   const displayText = cached && status === 'idle' ? cached.content : text
 
   const handleReview = async () => {
-    if (!ctx) return
-    await reviewTrade(ctx, allTrades)
+    await reviewTrade({ trade, allTrades })
   }
 
   const handleRegenerate = () => {
@@ -39,7 +36,7 @@ export function TradeReviewCard({ trade, allTrades }: Props) {
     delete newCache[trade.ref]
     useAIStore.setState({ reviewCache: newCache })
     reset()
-    if (ctx) reviewTrade(ctx, allTrades)
+    reviewTrade({ trade, allTrades })
   }
 
   return (
@@ -71,20 +68,19 @@ export function TradeReviewCard({ trade, allTrades }: Props) {
       {!displayText && status === 'idle' && (
         <button
           type="button"
-          className="px-3 py-1.5 text-xs rounded bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-50"
+          className="px-3 py-1.5 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
           onClick={handleReview}
-          disabled={ctxLoading}
         >
-          {ctxLoading ? 'Loading chart data...' : 'Review with AI'}
+          Review with AI
         </button>
       )}
 
-      {ctxError && (
-        <div className="text-xs text-red-400">Failed to load chart data: {ctxError.message}</div>
+      {(status === 'loading-context' || status === 'streaming') && !displayText && (
+        <ReviewSkeleton
+          label={status === 'loading-context' ? 'Fetching chart data...' : undefined}
+        />
       )}
-
-      {status === 'loading-context' && <ReviewSkeleton label="Fetching chart data..." />}
-      {status === 'streaming' && <StreamingText text={text} isStreaming />}
+      {status === 'streaming' && text && <StreamingText text={text} isStreaming />}
       {error && <div className="text-xs text-red-400 mt-2">{error}</div>}
 
       {displayText && status !== 'streaming' && (
@@ -102,8 +98,9 @@ export function TradeReviewCard({ trade, allTrades }: Props) {
               type="button"
               className="px-2 py-1 text-xs rounded bg-gray-800 text-gray-400 hover:text-gray-200"
               onClick={() => {
-                useAIStore.getState().setChatContext(trade.ref)
-                useAIStore.getState().setChatOpen(true)
+                const store = useAIStore.getState()
+                store.setChatContext(trade.ref)
+                store.setChatOpen(true)
               }}
             >
               Chat about this trade

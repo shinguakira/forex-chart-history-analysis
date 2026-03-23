@@ -9,7 +9,11 @@ import { StreamingText } from './StreamingText'
 const STALE_MS = 10 * 60 * 1000 // 10 minutes
 
 export function ForecastPage() {
-  const { apiKey, chatOpen, setSettingsOpen, setChatContext, setChatOpen } = useAIStore()
+  const apiKey = useAIStore((s) => s.apiKey)
+  const chatOpen = useAIStore((s) => s.chatOpen)
+  const setSettingsOpen = useAIStore((s) => s.setSettingsOpen)
+  const setChatContext = useAIStore((s) => s.setChatContext)
+  const setChatOpen = useAIStore((s) => s.setChatOpen)
   const { status, text, error, progress, generateForecast, reset, cancel } = useAIForecast()
   const cached = useAIStore((s) => s.reviewCache.forecast)
 

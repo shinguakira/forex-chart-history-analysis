@@ -1,10 +1,10 @@
 import { useCallback, useRef, useState } from 'react'
 import { buildPortfolioReviewMessages, buildTradeReviewMessages } from '@/lib/ai/prompts'
 import { createProvider } from '@/lib/ai/provider'
-import { buildPortfolioContext } from '@/lib/ai/trade-context'
+import { buildPortfolioContext, buildTradeContext } from '@/lib/ai/trade-context'
 import { computePairPerformance, computeSummary } from '@/lib/trade-analysis'
 import { useAIStore } from '@/store/ai-store'
-import type { AIMessage, TradeContext } from '@/types/ai'
+import type { AIMessage } from '@/types/ai'
 import type { Trade } from '@/types/trade'
 
 type ReviewStatus = 'idle' | 'loading-context' | 'streaming' | 'complete' | 'error'
@@ -23,71 +23,88 @@ export function useAIReview() {
   })
   const abortRef = useRef<AbortController | null>(null)
 
-  const reviewTrade = useCallback(async (ctx: TradeContext, trades: Trade[]) => {
-    const store = useAIStore.getState()
-    const { cacheReview, getCachedReview } = store
+  const reviewTrade = useCallback(
+    async ({ trade, allTrades }: { trade: Trade; allTrades: Trade[] }) => {
+      const store = useAIStore.getState()
+      const { cacheReview, getCachedReview } = store
 
-    const cacheKey = ctx.trade.ref
-    const cached = getCachedReview(cacheKey)
-    if (cached) {
-      setState({ status: 'complete', text: cached.content, error: null })
-      return
-    }
+      const cacheKey = trade.ref
+      const cached = getCachedReview(cacheKey)
+      if (cached) {
+        setState({ status: 'complete', text: cached.content, error: null })
+        return
+      }
 
-    const provider = createProvider({
-      type: store.provider,
-      apiKey: store.apiKey,
-      ollamaUrl: store.ollamaUrl,
-      ollamaModel: store.ollamaModel,
-    })
-    if (!provider.isConfigured()) {
-      setState({ status: 'error', text: '', error: 'API key not configured' })
-      return
-    }
+      const provider = createProvider({
+        type: store.provider,
+        apiKey: store.apiKey,
+        ollamaUrl: store.ollamaUrl,
+        ollamaModel: store.ollamaModel,
+      })
+      if (!provider.isConfigured()) {
+        setState({ status: 'error', text: '', error: 'API key not configured' })
+        return
+      }
 
-    abortRef.current?.abort()
-    const controller = new AbortController()
-    abortRef.current = controller
+      abortRef.current?.abort()
+      const controller = new AbortController()
+      abortRef.current = controller
 
-    setState({ status: 'streaming', text: '', error: null })
+      setState({ status: 'loading-context', text: '', error: null })
 
-    const summary = computeSummary(trades)
-    const pairStats = computePairPerformance(trades)
-    const pairStat = pairStats.find((p) => p.pairId === ctx.trade.pairId)
+      let ctx: Awaited<ReturnType<typeof buildTradeContext>>
+      try {
+        ctx = await buildTradeContext(trade)
+      } catch (err) {
+        setState({
+          status: 'error',
+          text: '',
+          error: `Failed to fetch chart data: ${err instanceof Error ? err.message : String(err)}`,
+        })
+        return
+      }
 
-    const { system, user } = buildTradeReviewMessages(
-      ctx,
-      summary.winRate,
-      pairStat?.winRate ?? summary.winRate,
-    )
+      setState({ status: 'streaming', text: '', error: null })
 
-    const messages: AIMessage[] = [
-      { role: 'system', content: system },
-      { role: 'user', content: user },
-    ]
+      const summary = computeSummary(allTrades)
+      const pairStats = computePairPerformance(allTrades)
+      const pairStat = pairStats.find((p) => p.pairId === trade.pairId)
 
-    await provider.stream(
-      messages,
-      {
-        onToken: (token) => {
-          setState((s) => ({ ...s, text: s.text + token }))
+      const { system, user } = buildTradeReviewMessages(
+        ctx,
+        summary.winRate,
+        pairStat?.winRate ?? summary.winRate,
+      )
+
+      const messages: AIMessage[] = [
+        { role: 'system', content: system },
+        { role: 'user', content: user },
+      ]
+
+      await provider.stream(
+        messages,
+        {
+          onToken: (token) => {
+            setState((s) => ({ ...s, text: s.text + token }))
+          },
+          onComplete: (fullText) => {
+            setState({ status: 'complete', text: fullText, error: null })
+            cacheReview({
+              id: crypto.randomUUID(),
+              key: cacheKey,
+              content: fullText,
+              createdAt: Date.now(),
+            })
+          },
+          onError: (err) => {
+            setState({ status: 'error', text: '', error: err.message })
+          },
         },
-        onComplete: (fullText) => {
-          setState({ status: 'complete', text: fullText, error: null })
-          cacheReview({
-            id: crypto.randomUUID(),
-            key: cacheKey,
-            content: fullText,
-            createdAt: Date.now(),
-          })
-        },
-        onError: (err) => {
-          setState({ status: 'error', text: '', error: err.message })
-        },
-      },
-      controller.signal,
-    )
-  }, [])
+        controller.signal,
+      )
+    },
+    [],
+  )
 
   const reviewPortfolio = useCallback(async (trades: Trade[]) => {
     const store = useAIStore.getState()

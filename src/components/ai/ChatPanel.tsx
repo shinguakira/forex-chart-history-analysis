@@ -1,24 +1,36 @@
 import { TRADE_HISTORY } from '@/config/trade-history'
 import { useAIChat } from '@/hooks/use-ai-chat'
-import { useTradeContext } from '@/hooks/use-trade-context'
 import { useAIStore } from '@/store/ai-store'
+import type { AIMessage } from '@/types/ai'
 import { ChatInput } from './ChatInput'
 import { ChatMessage } from './ChatMessage'
 
+const EMPTY: AIMessage[] = []
+
 export function ChatPanel() {
-  const { chatOpen, chatMessages, chatContext, setChatOpen, clearChat } = useAIStore()
+  const chatOpen = useAIStore((s) => s.chatOpen)
+  const chatContext = useAIStore((s) => s.chatContext)
+  const setChatOpen = useAIStore((s) => s.setChatOpen)
+  const clearChat = useAIStore((s) => s.clearChat)
   const { streaming, currentToken, error, sendMessage } = useAIChat()
+
+  const ctx = chatContext ?? '_default'
+  const chatMessages = useAIStore((s) => s.chatHistories[ctx] ?? EMPTY)
+  const forecastCache = useAIStore((s) => s.reviewCache.forecast)
+  const portfolioCache = useAIStore((s) => s.reviewCache.portfolio)
+  const tradeCache = useAIStore((s) =>
+    chatContext && chatContext !== 'portfolio' && chatContext !== 'forecast'
+      ? s.reviewCache[chatContext]
+      : undefined,
+  )
 
   const trade =
     chatContext && chatContext !== 'portfolio' && chatContext !== 'forecast'
       ? (TRADE_HISTORY.find((t) => t.ref === chatContext) ?? null)
       : null
-  const { data: tradeCtx } = useTradeContext(trade)
-  const forecastCache = useAIStore((s) => s.reviewCache.forecast)
 
   if (!chatOpen) return null
 
-  // Auto-scroll is handled by the ref callback on the scroll container
   const scrollToBottom = (el: HTMLDivElement | null) => {
     if (el) el.scrollTop = el.scrollHeight
   }
@@ -36,9 +48,9 @@ export function ChatPanel() {
     if (chatContext === 'forecast') {
       sendMessage(text, 'forecast', forecastCache?.content)
     } else if (chatContext === 'portfolio') {
-      sendMessage(text, 'portfolio')
-    } else if (tradeCtx) {
-      sendMessage(text, tradeCtx)
+      sendMessage(text, 'portfolio', portfolioCache?.content)
+    } else if (trade && tradeCache) {
+      sendMessage(text, 'trade-review', tradeCache.content)
     } else {
       sendMessage(text, 'portfolio')
     }

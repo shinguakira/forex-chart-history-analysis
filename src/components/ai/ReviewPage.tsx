@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { PAIRS } from '@/config/pairs'
 import { TRADE_HISTORY } from '@/config/trade-history'
 import { useAIReview } from '@/hooks/use-ai-review'
 import { useAIStore } from '@/store/ai-store'
@@ -10,6 +11,7 @@ import { StreamingText } from './StreamingText'
 import { TradeReviewCard } from './TradeReviewCard'
 
 type Tab = 'portfolio' | 'trades'
+const PAGE_SIZE = 20
 
 function getPresetStart(preset: string): Date | null {
   if (preset === 'all') return null
@@ -36,32 +38,60 @@ export function ReviewPage() {
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
   const [tradeFilter, setTradeFilter] = useState<'all' | 'wins' | 'losses'>('all')
+  const [pairFilter, setPairFilter] = useState('all')
+  const [searchRef, setSearchRef] = useState('')
+  const [page, setPage] = useState(0)
 
-  const { apiKey, chatOpen, setSettingsOpen, setChatContext, setChatOpen } = useAIStore()
+  const apiKey = useAIStore((s) => s.apiKey)
+  const chatOpen = useAIStore((s) => s.chatOpen)
+  const setSettingsOpen = useAIStore((s) => s.setSettingsOpen)
+  const setChatContext = useAIStore((s) => s.setChatContext)
+  const setChatOpen = useAIStore((s) => s.setChatOpen)
   const { status, text, error, reviewPortfolio, reset, cancel } = useAIReview()
   const cached = useAIStore((s) => s.reviewCache.portfolio)
 
   const filteredTrades = useMemo(() => {
+    let trades = TRADE_HISTORY
+
+    // Date filter
     if (preset === 'custom') {
       const start = customStart ? new Date(customStart) : null
       const end = customEnd ? new Date(`${customEnd}T23:59:59`) : null
-      return TRADE_HISTORY.filter((t) => {
+      trades = trades.filter((t) => {
         const d = new Date(t.closeDate)
         if (start && d < start) return false
         if (end && d > end) return false
         return true
       })
+    } else {
+      const start = getPresetStart(preset)
+      if (start) trades = trades.filter((t) => new Date(t.closeDate) >= start)
     }
-    const start = getPresetStart(preset)
-    if (!start) return TRADE_HISTORY
-    return TRADE_HISTORY.filter((t) => new Date(t.closeDate) >= start)
-  }, [preset, customStart, customEnd])
 
-  const displayedTrades = useMemo(() => {
-    if (tradeFilter === 'wins') return filteredTrades.filter((t) => t.pl > 0)
-    if (tradeFilter === 'losses') return filteredTrades.filter((t) => t.pl <= 0)
-    return filteredTrades
-  }, [filteredTrades, tradeFilter])
+    // Pair filter
+    if (pairFilter !== 'all') {
+      trades = trades.filter((t) => t.pairId === pairFilter)
+    }
+
+    // Win/loss filter
+    if (tradeFilter === 'wins') trades = trades.filter((t) => t.pl > 0)
+    if (tradeFilter === 'losses') trades = trades.filter((t) => t.pl <= 0)
+
+    // Ref search
+    if (searchRef.trim()) {
+      const q = searchRef.trim().toLowerCase()
+      trades = trades.filter(
+        (t) => t.ref.toLowerCase().includes(q) || t.openDate.includes(q) || t.closeDate.includes(q),
+      )
+    }
+
+    return trades
+  }, [preset, customStart, customEnd, pairFilter, tradeFilter, searchRef])
+
+  // Reset page when filters change
+  const totalPages = Math.ceil(filteredTrades.length / PAGE_SIZE)
+  const safePage = Math.min(page, Math.max(0, totalPages - 1))
+  const pagedTrades = filteredTrades.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE)
 
   const portfolioText = cached && status === 'idle' ? cached.content : text
   const isConfigured = apiKey.length > 0
@@ -197,43 +227,108 @@ export function ReviewPage() {
           <div className="space-y-4">
             <DurationFilter
               preset={preset}
-              onPresetChange={setPreset}
+              onPresetChange={(v) => {
+                setPreset(v)
+                setPage(0)
+              }}
               customStart={customStart}
               customEnd={customEnd}
-              onCustomStartChange={setCustomStart}
-              onCustomEndChange={setCustomEnd}
+              onCustomStartChange={(v) => {
+                setCustomStart(v)
+                setPage(0)
+              }}
+              onCustomEndChange={(v) => {
+                setCustomEnd(v)
+                setPage(0)
+              }}
             />
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Pair filter */}
+              <select
+                value={pairFilter}
+                onChange={(e) => {
+                  setPairFilter(e.target.value)
+                  setPage(0)
+                }}
+                className="bg-gray-800 text-gray-300 text-xs px-2 py-1 rounded border border-gray-700 outline-none focus:border-blue-500"
+              >
+                <option value="all">All Pairs</option>
+                {PAIRS.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.displayName}
+                  </option>
+                ))}
+              </select>
+
+              {/* Win/loss filter */}
               <div className="flex gap-1">
                 {(['all', 'wins', 'losses'] as const).map((f) => (
                   <button
                     key={f}
                     type="button"
                     className={`px-3 py-1 text-xs rounded ${tradeFilter === f ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`}
-                    onClick={() => setTradeFilter(f)}
+                    onClick={() => {
+                      setTradeFilter(f)
+                      setPage(0)
+                    }}
                   >
-                    {f === 'all'
-                      ? `All (${filteredTrades.length})`
-                      : f === 'wins'
-                        ? 'Wins'
-                        : 'Losses'}
+                    {f === 'all' ? 'All' : f === 'wins' ? 'Wins' : 'Losses'}
                   </button>
                 ))}
               </div>
-              <span className="text-xs text-gray-500">{displayedTrades.length} trades</span>
+
+              {/* Search */}
+              <input
+                type="text"
+                placeholder="Search ref / date..."
+                value={searchRef}
+                onChange={(e) => {
+                  setSearchRef(e.target.value)
+                  setPage(0)
+                }}
+                className="bg-gray-800 text-gray-300 text-xs px-2 py-1 rounded border border-gray-700 outline-none focus:border-blue-500 w-48"
+              />
+
+              <span className="text-xs text-gray-500">{filteredTrades.length} trades</span>
             </div>
 
+            {/* Trade cards - paginated */}
             <div className="space-y-3">
-              {displayedTrades.slice(0, 50).map((trade) => (
+              {pagedTrades.map((trade) => (
                 <TradeReviewCard key={trade.ref} trade={trade} allTrades={filteredTrades} />
               ))}
-              {displayedTrades.length > 50 && (
-                <div className="text-xs text-gray-500 text-center py-4">
-                  Showing first 50 of {displayedTrades.length} trades. Use filters to narrow down.
+              {filteredTrades.length === 0 && (
+                <div className="text-xs text-gray-500 text-center py-8">
+                  No trades match the current filters.
                 </div>
               )}
             </div>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 pt-2">
+                <button
+                  type="button"
+                  className="px-2 py-1 text-xs rounded bg-gray-800 text-gray-400 hover:text-gray-200 disabled:opacity-30"
+                  disabled={safePage === 0}
+                  onClick={() => setPage(safePage - 1)}
+                >
+                  Prev
+                </button>
+                <span className="text-xs text-gray-500">
+                  {safePage + 1} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  className="px-2 py-1 text-xs rounded bg-gray-800 text-gray-400 hover:text-gray-200 disabled:opacity-30"
+                  disabled={safePage >= totalPages - 1}
+                  onClick={() => setPage(safePage + 1)}
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

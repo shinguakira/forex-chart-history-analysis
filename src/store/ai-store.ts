@@ -13,7 +13,8 @@ interface AIState {
   ollamaModel: string
   settingsOpen: boolean
   reviewCache: Record<string, ReviewResult>
-  chatMessages: AIMessage[]
+  /** Per-context chat histories keyed by context id (e.g. 'portfolio', 'forecast', trade ref) */
+  chatHistories: Record<string, AIMessage[]>
   chatContext: string | null
   chatOpen: boolean
 }
@@ -28,6 +29,7 @@ interface AIActions {
   getCachedReview: (key: string) => ReviewResult | undefined
   clearReviewCache: () => void
   addChatMessage: (msg: AIMessage) => void
+  getChatMessages: () => AIMessage[]
   setChatContext: (ctx: string | null) => void
   setChatOpen: (open: boolean) => void
   clearChat: () => void
@@ -42,7 +44,7 @@ export const useAIStore = create<AIState & AIActions>()(
       ollamaModel: ENV_OLLAMA_MODEL,
       settingsOpen: false,
       reviewCache: {},
-      chatMessages: [],
+      chatHistories: {},
       chatContext: null,
       chatOpen: false,
 
@@ -61,12 +63,25 @@ export const useAIStore = create<AIState & AIActions>()(
 
       addChatMessage: (msg) =>
         set((s) => {
-          const messages = [...s.chatMessages, msg]
-          return { chatMessages: messages.slice(-50) }
+          const ctx = s.chatContext ?? '_default'
+          const prev = s.chatHistories[ctx] ?? []
+          const messages = [...prev, msg].slice(-50)
+          return { chatHistories: { ...s.chatHistories, [ctx]: messages } }
         }),
+      getChatMessages: () => {
+        const s = get()
+        const ctx = s.chatContext ?? '_default'
+        return s.chatHistories[ctx] ?? []
+      },
       setChatContext: (chatContext) => set({ chatContext }),
       setChatOpen: (chatOpen) => set({ chatOpen }),
-      clearChat: () => set({ chatMessages: [], chatContext: null }),
+      clearChat: () =>
+        set((s) => {
+          const ctx = s.chatContext ?? '_default'
+          const updated = { ...s.chatHistories }
+          delete updated[ctx]
+          return { chatHistories: updated }
+        }),
     }),
     {
       name: 'ai-store',

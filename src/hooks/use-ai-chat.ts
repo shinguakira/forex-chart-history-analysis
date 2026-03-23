@@ -2,7 +2,9 @@ import { useCallback, useRef, useState } from 'react'
 import { buildChatSystemMessage } from '@/lib/ai/prompts'
 import { createProvider } from '@/lib/ai/provider'
 import { useAIStore } from '@/store/ai-store'
-import type { AIMessage, TradeContext } from '@/types/ai'
+import type { AIMessage } from '@/types/ai'
+
+export type ChatContextType = 'portfolio' | 'forecast' | 'trade-review'
 
 export function useAIChat() {
   const [streaming, setStreaming] = useState(false)
@@ -11,11 +13,7 @@ export function useAIChat() {
   const abortRef = useRef<AbortController | null>(null)
 
   const sendMessage = useCallback(
-    async (
-      userText: string,
-      context: 'portfolio' | 'forecast' | TradeContext,
-      summaryText?: string,
-    ) => {
+    async (userText: string, context: ChatContextType, summaryText?: string) => {
       const store = useAIStore.getState()
       const provider = createProvider({
         type: store.provider,
@@ -42,8 +40,7 @@ export function useAIChat() {
       const systemContent = buildChatSystemMessage(context, summaryText)
       const messages: AIMessage[] = [
         { role: 'system', content: systemContent },
-        ...store.chatMessages,
-        { role: 'user', content: userText },
+        ...store.getChatMessages(),
       ]
 
       let fullText = ''
