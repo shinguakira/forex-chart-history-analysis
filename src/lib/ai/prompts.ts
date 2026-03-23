@@ -4,7 +4,7 @@ import type { IndicatorSnapshot, TradeContext } from '@/types/ai'
 import type { Candle } from '@/types/candle'
 import type { Trade } from '@/types/trade'
 
-const SYSTEM_PROMPT = `You are an experienced forex trading analyst reviewing a personal trading journal of KO (knockout) options on forex pairs. Your role is to provide direct, analytical, and actionable feedback.
+const TRADE_REVIEW_SYSTEM_PROMPT = `You are an experienced forex trading analyst reviewing a personal trading journal of KO (knockout) options on forex pairs. Your role is to provide direct, analytical, and actionable feedback.
 
 Key context:
 - All P/L values are in JPY (Japanese Yen)
@@ -17,7 +17,58 @@ Guidelines:
 - Focus on patterns, not individual outcomes (one trade can be bad but the pattern matters)
 - Identify concrete, actionable improvements
 - Don't give generic trading advice — analyze THIS trader's specific data
-- Use markdown formatting for readability`
+
+IMPORTANT — for single trade reviews, use this exact section structure with ## headers:
+
+## Verdict
+One sentence: was this a good or bad trade, and why. Include the P/L.
+
+## Entry Analysis
+Was the entry well-timed? Reference RSI, MACD, SMA values at entry. Was price near support/resistance?
+
+## Exit Analysis
+Was the exit optimal, premature, or late? Compare exit price to subsequent price action (candles after exit).
+
+## Technical Context
+Direction choice assessment. What did the indicators suggest? Any divergences between indicators?
+
+## Improvement
+One specific, actionable suggestion for this type of setup. Be concrete — reference actual levels or conditions.`
+
+const PORTFOLIO_SYSTEM_PROMPT = `You are an experienced forex trading analyst reviewing a personal trading journal of KO (knockout) options on forex pairs. Your role is to provide direct, analytical, and actionable feedback.
+
+Key context:
+- All P/L values are in JPY (Japanese Yen)
+- KO options: "bull" = long, "bear" = short
+- Trades include entry/exit prices, position size, and duration
+- Technical indicators (RSI, MACD, SMA, EMA, Bollinger Bands) are computed from actual price data at trade entry/exit
+
+Guidelines:
+- Be specific and reference actual numbers from the data
+- Focus on patterns, not individual outcomes (one trade can be bad but the pattern matters)
+- Identify concrete, actionable improvements
+- Don't give generic trading advice — analyze THIS trader's specific data
+
+IMPORTANT — for portfolio reviews, use this exact section structure with ## headers:
+
+## Overall Assessment
+2-3 sentence summary: overall performance verdict, total P/L, win rate, and key takeaway.
+
+## Strengths
+Top 3 strengths as bullet points, each with supporting data (specific numbers).
+
+## Weaknesses
+Top 3 weaknesses as bullet points, each with supporting data.
+
+## Patterns
+Time-of-day bias, pair-specific issues, direction bias. Use a markdown table if helpful:
+| Pattern | Observation | Impact |
+
+## Risk Management
+Assessment of position sizing, stop placement, and risk-reward ratios.
+
+## Action Items
+Prioritized list of concrete improvements. Numbered list, most impactful first.`
 
 export function formatCandles(candles: Candle[], label: string, limit: number): string {
   const slice = candles.slice(-limit)
@@ -98,13 +149,9 @@ export function buildTradeReviewMessages(
   user += `${displayName} win rate: ${(pairWinRate * 100).toFixed(1)}%\n`
   user += '</your_stats>\n\n'
 
-  user += 'Analyze:\n'
-  user += '1. Was the entry well-timed based on the technical indicators?\n'
-  user += '2. Was the exit optimal, premature, or late? (check candles after exit)\n'
-  user += '3. Was the direction choice correct given the technicals?\n'
-  user += '4. What specific improvement would you suggest for this type of setup?\n'
+  user += 'Respond using the exact ## section headers defined in your instructions.'
 
-  return { system: SYSTEM_PROMPT, user }
+  return { system: TRADE_REVIEW_SYSTEM_PROMPT, user }
 }
 
 export function buildPortfolioReviewMessages(
@@ -135,22 +182,17 @@ export function buildPortfolioReviewMessages(
     }
   }
 
-  user += 'Provide:\n'
-  user += '1. Overall assessment of trading performance\n'
-  user += '2. Top 3 strengths (with supporting data)\n'
-  user += '3. Top 3 weaknesses (with supporting data)\n'
-  user += '4. Specific patterns: time-of-day bias, pair-specific issues, direction bias\n'
-  user += '5. Risk management assessment\n'
-  user += '6. Concrete action items to improve (prioritized)\n'
+  user += 'Respond using the exact ## section headers defined in your instructions.'
 
-  return { system: SYSTEM_PROMPT, user }
+  return { system: PORTFOLIO_SYSTEM_PROMPT, user }
 }
 
 export function buildChatSystemMessage(
   context: 'portfolio' | 'forecast' | 'trade-review',
   summaryText?: string,
 ): string {
-  let contextInfo = `${SYSTEM_PROMPT}\n\n`
+  const basePrompt = context === 'portfolio' ? PORTFOLIO_SYSTEM_PROMPT : TRADE_REVIEW_SYSTEM_PROMPT
+  let contextInfo = `${basePrompt}\n\n`
 
   if (context === 'forecast' && summaryText) {
     contextInfo +=

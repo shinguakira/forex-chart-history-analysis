@@ -4,7 +4,7 @@ import { useAIStore } from '@/store/ai-store'
 import { ChatPanel } from './ChatPanel'
 import { ReviewSkeleton } from './ReviewSkeleton'
 import { SettingsDialog } from './SettingsDialog'
-import { StreamingText } from './StreamingText'
+import { StructuredResponse } from './StructuredResponse'
 
 const STALE_MS = 10 * 60 * 1000 // 10 minutes
 
@@ -84,11 +84,11 @@ export function ForecastPage() {
 
         {/* Streaming */}
         {status === 'streaming' && (
-          <div className="rounded-lg border border-gray-800 bg-gray-900/50 p-4">
-            <StreamingText text={text} isStreaming />
+          <div>
+            <StructuredResponse text={text} isStreaming />
             <button
               type="button"
-              className="mt-3 px-2 py-1 text-xs rounded bg-gray-800 text-gray-400 hover:text-gray-200"
+              className="mt-3 px-3 py-1.5 text-xs rounded-lg bg-gray-800 text-gray-400 hover:text-gray-200 hover:bg-gray-700 transition-colors"
               onClick={cancel}
             >
               Stop
@@ -97,33 +97,37 @@ export function ForecastPage() {
         )}
 
         {/* Error */}
-        {error && <div className="text-sm text-red-400">{error}</div>}
+        {error && (
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            {error}
+          </div>
+        )}
 
         {/* Completed forecast */}
         {forecastText && status !== 'streaming' && (
-          <div className="rounded-lg border border-gray-800 bg-gray-900/50 p-4">
+          <div>
             {cached && (
-              <div className="text-xs text-gray-500 mb-3">
-                Generated: {formatDateJST(cached.createdAt)}
+              <div className="text-xs text-gray-500 mb-4 flex items-center gap-2">
+                <span>Generated: {formatDateJST(cached.createdAt)}</span>
                 {isCacheStale && (
-                  <span className="text-yellow-500 ml-2">
-                    (stale — market data may have changed)
+                  <span className="text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded-full text-[10px] font-medium">
+                    stale
                   </span>
                 )}
               </div>
             )}
-            <StreamingText text={forecastText} />
-            <div className="flex gap-2 mt-4 pt-3 border-t border-gray-800">
+            <StructuredResponse text={forecastText} />
+            <div className="flex gap-2 mt-5">
               <button
                 type="button"
-                className="px-3 py-1 text-xs rounded bg-gray-800 text-gray-400 hover:text-gray-200"
+                className="px-3 py-1.5 text-xs rounded-lg bg-gray-800 text-gray-400 hover:text-gray-200 hover:bg-gray-700 transition-colors"
                 onClick={handleRegenerate}
               >
                 Regenerate
               </button>
               <button
                 type="button"
-                className="px-3 py-1 text-xs rounded bg-gray-800 text-gray-400 hover:text-gray-200"
+                className="px-3 py-1.5 text-xs rounded-lg bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 transition-colors"
                 onClick={() => {
                   setChatContext('forecast')
                   setChatOpen(true)

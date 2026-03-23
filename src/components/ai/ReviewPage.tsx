@@ -7,7 +7,7 @@ import { DurationFilter } from '../analysis/DurationFilter'
 import { ChatPanel } from './ChatPanel'
 import { ReviewSkeleton } from './ReviewSkeleton'
 import { SettingsDialog } from './SettingsDialog'
-import { StreamingText } from './StreamingText'
+import { StructuredResponse } from './StructuredResponse'
 import { TradeReviewCard } from './TradeReviewCard'
 
 type Tab = 'portfolio' | 'trades'
@@ -181,11 +181,11 @@ export function ReviewPage() {
             )}
 
             {status === 'streaming' && (
-              <div className="rounded-lg border border-gray-800 bg-gray-900/50 p-4">
-                <StreamingText text={text} isStreaming />
+              <div>
+                <StructuredResponse text={text} isStreaming />
                 <button
                   type="button"
-                  className="mt-3 px-2 py-1 text-xs rounded bg-gray-800 text-gray-400 hover:text-gray-200"
+                  className="mt-3 px-3 py-1.5 text-xs rounded-lg bg-gray-800 text-gray-400 hover:text-gray-200 hover:bg-gray-700 transition-colors"
                   onClick={cancel}
                 >
                   Stop
@@ -193,22 +193,26 @@ export function ReviewPage() {
               </div>
             )}
 
-            {error && <div className="text-sm text-red-400">{error}</div>}
+            {error && (
+              <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                {error}
+              </div>
+            )}
 
             {portfolioText && status !== 'streaming' && (
-              <div className="rounded-lg border border-gray-800 bg-gray-900/50 p-4">
-                <StreamingText text={portfolioText} />
-                <div className="flex gap-2 mt-4 pt-3 border-t border-gray-800">
+              <div>
+                <StructuredResponse text={portfolioText} />
+                <div className="flex gap-2 mt-5">
                   <button
                     type="button"
-                    className="px-3 py-1 text-xs rounded bg-gray-800 text-gray-400 hover:text-gray-200"
+                    className="px-3 py-1.5 text-xs rounded-lg bg-gray-800 text-gray-400 hover:text-gray-200 hover:bg-gray-700 transition-colors"
                     onClick={handlePortfolioRegenerate}
                   >
                     Regenerate
                   </button>
                   <button
                     type="button"
-                    className="px-3 py-1 text-xs rounded bg-gray-800 text-gray-400 hover:text-gray-200"
+                    className="px-3 py-1.5 text-xs rounded-lg bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 transition-colors"
                     onClick={() => {
                       setChatContext('portfolio')
                       setChatOpen(true)

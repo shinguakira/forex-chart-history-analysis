@@ -12,8 +12,30 @@ Guidelines:
 - Identify key support/resistance levels from technical indicators
 - Note divergences between timeframes
 - All times are in JST (Japan Standard Time, UTC+9)
-- Use markdown formatting with clear sections and tables
-- Be concise — prioritize actionable information over explanation`
+- Be concise — prioritize actionable information over explanation
+
+IMPORTANT — you MUST use this exact section structure with ## headers:
+
+## Market Overview
+Brief 2-3 sentence summary of current conditions across all pairs.
+
+## USD/JPY Forecast
+Use a markdown table with columns: Timeframe | Range | Bias | Confidence
+One row per timeframe (5m, 15m, 1H, 4H, 1D). Then 1-2 sentences of context.
+
+## Key Levels
+Use a markdown table with columns: Level | Price | Type | Significance
+List critical support/resistance levels. Type = Support or Resistance.
+
+## Cross-Pair Analysis
+How other pairs correlate with USD/JPY. Use bullet points for each pair.
+
+## Risk Factors
+Bullet list of technical patterns or conditions that could invalidate the forecast.
+
+## Trading Opportunities
+Specific setups with entry, stop-loss, and target levels. Use a table if multiple setups exist.
+If no clear setups, say so — do not force trades.`
 
 export function buildForecastMessages(ctx: ForecastContext): { system: string; user: string } {
   let user = `Generate a forex forecast as of ${formatDateJST(ctx.generatedAt)}.\n\n`
@@ -37,15 +59,7 @@ export function buildForecastMessages(ctx: ForecastContext): { system: string; u
   }
 
   user += '---\n\n'
-  user += 'Provide:\n'
-  user +=
-    '1. **USD/JPY Forecast**: Predicted range and directional bias for each timeframe (5m, 15m, 1H, 4H, 1D)\n'
-  user += '2. **Key Levels**: Critical support/resistance levels to watch\n'
-  user +=
-    '3. **Cross-Pair Analysis**: How other pairs correlate and what they suggest for USD/JPY\n'
-  user +=
-    '4. **Risk Factors**: Technical patterns or conditions that could invalidate the forecast\n'
-  user += '5. **Trading Opportunities**: Specific setups with entry/exit levels if any exist\n'
+  user += 'Respond using the exact ## section headers defined in your instructions.'
 
   return { system: FORECAST_SYSTEM_PROMPT, user }
 }
