@@ -22,7 +22,7 @@ export class ClaudeProvider implements AIProvider {
 
     const body: Record<string, unknown> = {
       model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
+      max_tokens: 16384,
       stream: true,
       messages: nonSystemMessages.map((m) => ({ role: m.role, content: m.content })),
     }

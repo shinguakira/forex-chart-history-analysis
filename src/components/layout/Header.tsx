@@ -49,6 +49,26 @@ export function Header() {
             Forecast
           </Link>
           <Link
+            to="/predictions"
+            className={`px-3 py-1 text-xs rounded transition-colors ${
+              pathname === '/predictions'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+            }`}
+          >
+            Predictions
+          </Link>
+          <Link
+            to="/backtest"
+            className={`px-3 py-1 text-xs rounded transition-colors ${
+              pathname === '/backtest'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+            }`}
+          >
+            Backtest
+          </Link>
+          <Link
             to="/notes"
             className={`px-3 py-1 text-xs rounded transition-colors ${
               pathname === '/notes'
