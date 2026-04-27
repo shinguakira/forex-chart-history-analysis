@@ -1,0 +1,27 @@
+[package]
+name = "forex-migrate"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "migrate-from-json"
+path = "src/main.rs"
+
+[features]
+default = ["sqlite"]
+sqlite = ["forex-db/sqlite"]
+postgres = ["forex-db/postgres"]
+
+[dependencies]
+forex-core = { workspace = true }
+forex-db = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+clap = { version = "4", features = ["derive", "env"] }
+anyhow = { workspace = true }
+sea-orm = { version = "1", default-features = false, features = ["macros", "runtime-tokio-rustls", "with-chrono", "with-uuid", "with-json"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }

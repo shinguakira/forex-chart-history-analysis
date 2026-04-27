@@ -1,56 +1,41 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 
-interface Note {
-  id: string
-  text: string
-  createdAt: number
-}
+import type { Note } from '@/generated/bindings'
+import { rspc } from '@/lib/rspc'
 
-async function loadNotes(): Promise<Note[]> {
-  const res = await fetch('/api/notes')
-  if (!res.ok) return []
-  return res.json()
-}
-
-async function saveNotes(notes: Note[]): Promise<void> {
-  await fetch('/api/notes', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(notes),
-  })
-}
+const LIST_KEY = ['notes.list'] as const
 
 export function NotesPage() {
-  const [notes, setNotes] = useState<Note[]>([])
+  const qc = useQueryClient()
   const [draft, setDraft] = useState('')
   const [editId, setEditId] = useState<string | null>(null)
   const [editText, setEditText] = useState('')
-  const [loaded, setLoaded] = useState(false)
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  useEffect(() => {
-    loadNotes().then((data) => {
-      setNotes(data)
-      setLoaded(true)
-    })
-  }, [])
+  const notesQuery = useQuery({
+    queryKey: LIST_KEY,
+    queryFn: () => rspc.query(['notes.list']),
+  })
 
-  const persist = useCallback((updated: Note[]) => {
-    setNotes(updated)
-    if (saveTimer.current) clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(() => saveNotes(updated), 300)
-  }, [])
+  const upsert = useMutation({
+    mutationFn: (input: { id?: string | null; text: string }) =>
+      rspc.mutation(['notes.upsert', { id: input.id ?? null, text: input.text }]),
+    onSuccess: () => qc.invalidateQueries({ queryKey: LIST_KEY }),
+  })
+
+  const remove = useMutation({
+    mutationFn: (id: string) => rspc.mutation(['notes.delete', { id }]),
+    onSuccess: () => qc.invalidateQueries({ queryKey: LIST_KEY }),
+  })
+
+  const notes = notesQuery.data ?? []
+  const loaded = notesQuery.isSuccess
 
   const handleAdd = () => {
     const text = draft.trim()
     if (!text) return
-    const note: Note = { id: crypto.randomUUID(), text, createdAt: Date.now() }
-    persist([note, ...notes])
+    upsert.mutate({ text })
     setDraft('')
-  }
-
-  const handleDelete = (id: string) => {
-    persist(notes.filter((n) => n.id !== id))
   }
 
   const handleEditStart = (note: Note) => {
@@ -62,9 +47,9 @@ export function NotesPage() {
     if (!editId) return
     const text = editText.trim()
     if (!text) {
-      handleDelete(editId)
+      remove.mutate(editId)
     } else {
-      persist(notes.map((n) => (n.id === editId ? { ...n, text } : n)))
+      upsert.mutate({ id: editId, text })
     }
     setEditId(null)
     setEditText('')
@@ -81,7 +66,6 @@ export function NotesPage() {
       <div className="max-w-3xl mx-auto space-y-6">
         <h1 className="text-xl font-bold text-white">Notes</h1>
 
-        {/* Add note */}
         <div className="flex gap-2">
           <textarea
             value={draft}
@@ -95,15 +79,18 @@ export function NotesPage() {
           />
           <button
             type="button"
-            className="self-end px-4 py-2 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
+            className="self-end px-4 py-2 text-xs rounded bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-50"
             onClick={handleAdd}
+            disabled={upsert.isPending}
           >
             Add
           </button>
         </div>
 
-        {/* Notes list */}
         {!loaded && <div className="text-xs text-gray-500">Loading...</div>}
+        {notesQuery.isError && (
+          <div className="text-xs text-red-400">Failed to load notes: {String(notesQuery.error)}</div>
+        )}
 
         <div className="space-y-3">
           {notes.map((note) => (
@@ -153,7 +140,7 @@ export function NotesPage() {
                       <button
                         type="button"
                         className="text-xs text-gray-500 hover:text-red-400"
-                        onClick={() => handleDelete(note.id)}
+                        onClick={() => remove.mutate(note.id)}
                       >
                         Delete
                       </button>

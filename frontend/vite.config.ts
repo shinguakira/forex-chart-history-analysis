@@ -4,7 +4,6 @@ import { TanStackRouterVite } from '@tanstack/router-vite-plugin'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { backtestsPlugin } from './vite-plugin-backtests'
-import { notesPlugin } from './vite-plugin-notes'
 import { practicePlugin } from './vite-plugin-practice'
 import { predictionsPlugin } from './vite-plugin-predictions'
 
@@ -13,7 +12,6 @@ export default defineConfig({
     react(),
     tailwindcss(),
     TanStackRouterVite(),
-    notesPlugin(),
     predictionsPlugin(),
     backtestsPlugin(),
     practicePlugin(),
@@ -25,6 +23,11 @@ export default defineConfig({
   },
   server: {
     proxy: {
+      '/rspc': {
+        target: 'http://localhost:4000',
+        changeOrigin: true,
+        ws: true,
+      },
       '/api/yahoo': {
         target: 'https://query1.finance.yahoo.com',
         changeOrigin: true,

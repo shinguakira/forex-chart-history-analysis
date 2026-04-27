@@ -1,0 +1,12 @@
+[package]
+name = "forex-tauri"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "forex-tauri"
+path = "src/main.rs"
+
+[dependencies]
