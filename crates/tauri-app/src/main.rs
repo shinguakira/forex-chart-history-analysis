@@ -1,4 +1,5 @@
-// Tauri desktop binary. Implemented in step 6 (and tray/autostart in step 9).
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
+
 fn main() {
-    println!("forex-tauri placeholder");
+    forex_tauri_lib::run()
 }
