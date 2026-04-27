@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ReviewRouteImport } from './routes/review'
 import { Route as PredictionsRouteImport } from './routes/predictions'
+import { Route as PracticeRouteImport } from './routes/practice'
 import { Route as NotesRouteImport } from './routes/notes'
 import { Route as LearningRouteImport } from './routes/learning'
 import { Route as ForecastRouteImport } from './routes/forecast'
@@ -27,6 +28,11 @@ const ReviewRoute = ReviewRouteImport.update({
 const PredictionsRoute = PredictionsRouteImport.update({
   id: '/predictions',
   path: '/predictions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PracticeRoute = PracticeRouteImport.update({
+  id: '/practice',
+  path: '/practice',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotesRoute = NotesRouteImport.update({
@@ -72,6 +78,7 @@ export interface FileRoutesByFullPath {
   '/forecast': typeof ForecastRoute
   '/learning': typeof LearningRoute
   '/notes': typeof NotesRoute
+  '/practice': typeof PracticeRoute
   '/predictions': typeof PredictionsRoute
   '/review': typeof ReviewRoute
   '/pair/$pairId': typeof PairPairIdRoute
@@ -83,6 +90,7 @@ export interface FileRoutesByTo {
   '/forecast': typeof ForecastRoute
   '/learning': typeof LearningRoute
   '/notes': typeof NotesRoute
+  '/practice': typeof PracticeRoute
   '/predictions': typeof PredictionsRoute
   '/review': typeof ReviewRoute
   '/pair/$pairId': typeof PairPairIdRoute
@@ -95,6 +103,7 @@ export interface FileRoutesById {
   '/forecast': typeof ForecastRoute
   '/learning': typeof LearningRoute
   '/notes': typeof NotesRoute
+  '/practice': typeof PracticeRoute
   '/predictions': typeof PredictionsRoute
   '/review': typeof ReviewRoute
   '/pair/$pairId': typeof PairPairIdRoute
@@ -108,6 +117,7 @@ export interface FileRouteTypes {
     | '/forecast'
     | '/learning'
     | '/notes'
+    | '/practice'
     | '/predictions'
     | '/review'
     | '/pair/$pairId'
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/forecast'
     | '/learning'
     | '/notes'
+    | '/practice'
     | '/predictions'
     | '/review'
     | '/pair/$pairId'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/forecast'
     | '/learning'
     | '/notes'
+    | '/practice'
     | '/predictions'
     | '/review'
     | '/pair/$pairId'
@@ -142,6 +154,7 @@ export interface RootRouteChildren {
   ForecastRoute: typeof ForecastRoute
   LearningRoute: typeof LearningRoute
   NotesRoute: typeof NotesRoute
+  PracticeRoute: typeof PracticeRoute
   PredictionsRoute: typeof PredictionsRoute
   ReviewRoute: typeof ReviewRoute
   PairPairIdRoute: typeof PairPairIdRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/predictions'
       fullPath: '/predictions'
       preLoaderRoute: typeof PredictionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/practice': {
+      id: '/practice'
+      path: '/practice'
+      fullPath: '/practice'
+      preLoaderRoute: typeof PracticeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notes': {
@@ -222,6 +242,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForecastRoute: ForecastRoute,
   LearningRoute: LearningRoute,
   NotesRoute: NotesRoute,
+  PracticeRoute: PracticeRoute,
   PredictionsRoute: PredictionsRoute,
   ReviewRoute: ReviewRoute,
   PairPairIdRoute: PairPairIdRoute,

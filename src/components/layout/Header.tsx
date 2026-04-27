@@ -69,6 +69,16 @@ export function Header() {
             Backtest
           </Link>
           <Link
+            to="/practice"
+            className={`px-3 py-1 text-xs rounded transition-colors ${
+              pathname === '/practice'
+                ? 'bg-blue-600 text-white'
+                : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+            }`}
+          >
+            Practice
+          </Link>
+          <Link
             to="/notes"
             className={`px-3 py-1 text-xs rounded transition-colors ${
               pathname === '/notes'

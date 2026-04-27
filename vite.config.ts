@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { backtestsPlugin } from './vite-plugin-backtests'
 import { notesPlugin } from './vite-plugin-notes'
+import { practicePlugin } from './vite-plugin-practice'
 import { predictionsPlugin } from './vite-plugin-predictions'
 
 export default defineConfig({
@@ -15,6 +16,7 @@ export default defineConfig({
     notesPlugin(),
     predictionsPlugin(),
     backtestsPlugin(),
+    practicePlugin(),
   ],
   resolve: {
     alias: {
