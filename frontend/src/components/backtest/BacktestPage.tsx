@@ -1,6 +1,7 @@
 import { useIsAIConfigured } from '@/hooks/use-is-ai-configured'
 import { useState } from 'react'
 import { getPairById, PAIRS } from '@/config/pairs'
+import type { BacktestRun } from '@/generated/bindings'
 import { useBacktest } from '@/hooks/use-backtest'
 import { formatDateJST } from '@/lib/date-utils'
 import { useAIStore } from '@/store/ai-store'
@@ -104,8 +105,19 @@ export function BacktestPage() {
   const formatPairs = (pairIds: string[]) =>
     pairIds.map((id) => getPairById(id)?.displayName ?? id).join(', ')
 
-  const formatRange = (start: number, end: number) =>
-    `${formatDateJST(start)} ~ ${formatDateJST(end)}`
+  const formatRange = (start: number | undefined | null, end: number | undefined | null) => {
+    if (start == null && end == null) return '—'
+    const s = start ?? end
+    const e = end ?? start
+    return `${formatDateJST(s as number)} ~ ${formatDateJST(e as number)}`
+  }
+
+  const runWindow = (cfg: BacktestRun['config']) => {
+    const start = cfg.startTimestamp ?? cfg.cutoffTimestamp ?? null
+    const end = cfg.endTimestamp ?? cfg.cutoffTimestamp ?? null
+    const interval = cfg.intervalDays ?? 1
+    return { start, end, interval }
+  }
 
   return (
     <div className="h-[calc(100vh-49px)] overflow-y-auto bg-[#0f1117] text-gray-200">
@@ -368,11 +380,11 @@ export function BacktestPage() {
           <div className="space-y-3">
             {runs.map((run) => {
               const isExpanded = expandedRuns.has(run.id)
+              const { start, end, interval } = runWindow(run.config)
               const cutoffCount =
-                Math.floor(
-                  (run.config.endTimestamp - run.config.startTimestamp) /
-                    (run.config.intervalDays * 86_400_000),
-                ) + 1
+                start != null && end != null && end > start
+                  ? Math.floor((end - start) / (interval * 86_400_000)) + 1
+                  : run.predictions.length
               return (
                 <div key={run.id} className="rounded-lg border border-gray-800 bg-gray-900/50">
                   {/* Run summary */}
@@ -385,10 +397,10 @@ export function BacktestPage() {
                       <div className="flex items-center gap-3 text-xs">
                         <span className="text-gray-500">{isExpanded ? '\u25BC' : '\u25B6'}</span>
                         <span className="text-white font-medium">
-                          {formatRange(run.config.startTimestamp, run.config.endTimestamp)}
+                          {formatRange(start, end)}
                         </span>
                         <span className="text-gray-500">
-                          {cutoffCount}x / {run.config.intervalDays}d
+                          {cutoffCount}x / {interval}d
                         </span>
                       </div>
                       <div className="flex items-center gap-3 text-xs mt-1 ml-5">

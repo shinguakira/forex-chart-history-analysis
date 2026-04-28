@@ -14,6 +14,7 @@ import { Route as PredictionsRouteImport } from './routes/predictions'
 import { Route as PracticeRouteImport } from './routes/practice'
 import { Route as NotesRouteImport } from './routes/notes'
 import { Route as LearningRouteImport } from './routes/learning'
+import { Route as IngestionRouteImport } from './routes/ingestion'
 import { Route as ForecastRouteImport } from './routes/forecast'
 import { Route as BacktestRouteImport } from './routes/backtest'
 import { Route as AnalysisRouteImport } from './routes/analysis'
@@ -43,6 +44,11 @@ const NotesRoute = NotesRouteImport.update({
 const LearningRoute = LearningRouteImport.update({
   id: '/learning',
   path: '/learning',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IngestionRoute = IngestionRouteImport.update({
+  id: '/ingestion',
+  path: '/ingestion',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ForecastRoute = ForecastRouteImport.update({
@@ -76,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/analysis': typeof AnalysisRoute
   '/backtest': typeof BacktestRoute
   '/forecast': typeof ForecastRoute
+  '/ingestion': typeof IngestionRoute
   '/learning': typeof LearningRoute
   '/notes': typeof NotesRoute
   '/practice': typeof PracticeRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/analysis': typeof AnalysisRoute
   '/backtest': typeof BacktestRoute
   '/forecast': typeof ForecastRoute
+  '/ingestion': typeof IngestionRoute
   '/learning': typeof LearningRoute
   '/notes': typeof NotesRoute
   '/practice': typeof PracticeRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/analysis': typeof AnalysisRoute
   '/backtest': typeof BacktestRoute
   '/forecast': typeof ForecastRoute
+  '/ingestion': typeof IngestionRoute
   '/learning': typeof LearningRoute
   '/notes': typeof NotesRoute
   '/practice': typeof PracticeRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/analysis'
     | '/backtest'
     | '/forecast'
+    | '/ingestion'
     | '/learning'
     | '/notes'
     | '/practice'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/analysis'
     | '/backtest'
     | '/forecast'
+    | '/ingestion'
     | '/learning'
     | '/notes'
     | '/practice'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/analysis'
     | '/backtest'
     | '/forecast'
+    | '/ingestion'
     | '/learning'
     | '/notes'
     | '/practice'
@@ -152,6 +164,7 @@ export interface RootRouteChildren {
   AnalysisRoute: typeof AnalysisRoute
   BacktestRoute: typeof BacktestRoute
   ForecastRoute: typeof ForecastRoute
+  IngestionRoute: typeof IngestionRoute
   LearningRoute: typeof LearningRoute
   NotesRoute: typeof NotesRoute
   PracticeRoute: typeof PracticeRoute
@@ -197,6 +210,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LearningRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ingestion': {
+      id: '/ingestion'
+      path: '/ingestion'
+      fullPath: '/ingestion'
+      preLoaderRoute: typeof IngestionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/forecast': {
       id: '/forecast'
       path: '/forecast'
@@ -240,6 +260,7 @@ const rootRouteChildren: RootRouteChildren = {
   AnalysisRoute: AnalysisRoute,
   BacktestRoute: BacktestRoute,
   ForecastRoute: ForecastRoute,
+  IngestionRoute: IngestionRoute,
   LearningRoute: LearningRoute,
   NotesRoute: NotesRoute,
   PracticeRoute: PracticeRoute,

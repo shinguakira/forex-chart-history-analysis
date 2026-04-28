@@ -18,6 +18,14 @@ data/
 .env.local
 frontend/src/generated/
 
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+test.db
+test.db-wal
+test.db-shm
+test.db-journal
+
 # Rust / Cargo
 target/
 **/*.rs.bk
