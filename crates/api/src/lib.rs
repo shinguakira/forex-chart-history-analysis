@@ -1,12 +1,13 @@
 use std::sync::Arc;
 
 use forex_db::DatabaseConnection;
+use forex_ingestor::YahooClient;
 use rspc_legacy::Router as LegacyRouter;
 
 pub mod ctx;
 pub mod routes;
 
-pub use ctx::Ctx;
+pub use ctx::{AppConfig, Ctx};
 
 pub fn build_legacy_router() -> LegacyRouter<Ctx> {
     let r = LegacyRouter::<Ctx>::new();
@@ -16,6 +17,7 @@ pub fn build_legacy_router() -> LegacyRouter<Ctx> {
     let r = routes::backtests::mount(r);
     let r = routes::practice::mount(r);
     let r = routes::trades::mount(r);
+    let r = routes::candles::mount(r);
     r.build()
 }
 
@@ -38,5 +40,11 @@ pub fn export_typescript_bindings(types: &rspc::Types, output_path: &std::path::
 }
 
 pub fn make_ctx(db: Arc<DatabaseConnection>) -> Ctx {
-    Ctx { db }
+    let yahoo = Arc::new(YahooClient::new().expect("yahoo client"));
+    Ctx { db, yahoo, config: AppConfig::default() }
+}
+
+pub fn make_ctx_with_config(db: Arc<DatabaseConnection>, config: AppConfig) -> Ctx {
+    let yahoo = Arc::new(YahooClient::new().expect("yahoo client"));
+    Ctx { db, yahoo, config }
 }

@@ -8,6 +8,7 @@ publish.workspace = true
 [dependencies]
 forex-core = { workspace = true }
 forex-db = { workspace = true }
+forex-ingestor = { workspace = true }
 rspc = { version = "0.4", features = ["legacy", "typescript"] }
 rspc-legacy = "0.0.1"
 futures-util = "0.3"
