@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { TRADE_HISTORY } from '@/config/trade-history'
+import { useTradeHistory } from '@/hooks/use-trade-history'
 import { ConsistencyScore } from './ConsistencyScore'
 import { CumulativePLChart } from './CumulativePLChart'
 import { DirectionAnalysis } from './DirectionAnalysis'
@@ -38,6 +38,7 @@ export function AnalysisPage() {
   const [preset, setPreset] = useState('all')
   const [customStart, setCustomStart] = useState('')
   const [customEnd, setCustomEnd] = useState('')
+  const { trades: TRADE_HISTORY } = useTradeHistory()
 
   const filteredTrades = useMemo(() => {
     if (preset === 'custom') {
@@ -55,7 +56,7 @@ export function AnalysisPage() {
     if (!start) return TRADE_HISTORY
 
     return TRADE_HISTORY.filter((t) => new Date(t.closeDate) >= start)
-  }, [preset, customStart, customEnd])
+  }, [preset, customStart, customEnd, TRADE_HISTORY])
 
   return (
     <div className="h-[calc(100vh-49px)] overflow-y-auto">

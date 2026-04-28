@@ -5,6 +5,7 @@ mod m20260427_000001_create_notes;
 mod m20260427_000002_create_predictions;
 mod m20260427_000003_create_backtest_runs;
 mod m20260427_000004_create_practice_trades;
+mod m20260427_000005_create_trades;
 
 pub struct Migrator;
 
@@ -16,6 +17,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20260427_000002_create_predictions::Migration),
             Box::new(m20260427_000003_create_backtest_runs::Migration),
             Box::new(m20260427_000004_create_practice_trades::Migration),
+            Box::new(m20260427_000005_create_trades::Migration),
         ]
     }
 }

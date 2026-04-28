@@ -15,6 +15,7 @@ pub fn build_legacy_router() -> LegacyRouter<Ctx> {
     let r = routes::predictions::mount(r);
     let r = routes::backtests::mount(r);
     let r = routes::practice::mount(r);
+    let r = routes::trades::mount(r);
     r.build()
 }
 

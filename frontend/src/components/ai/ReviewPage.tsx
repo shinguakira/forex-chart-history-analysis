@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { PAIRS } from '@/config/pairs'
-import { TRADE_HISTORY } from '@/config/trade-history'
 import { useAIReview } from '@/hooks/use-ai-review'
+import { useTradeHistory } from '@/hooks/use-trade-history'
 import { useAIStore } from '@/store/ai-store'
 import { DurationFilter } from '../analysis/DurationFilter'
 import { ChatPanel } from './ChatPanel'
@@ -49,6 +49,7 @@ export function ReviewPage() {
   const setChatOpen = useAIStore((s) => s.setChatOpen)
   const { status, text, error, reviewPortfolio, reset, cancel } = useAIReview()
   const cached = useAIStore((s) => s.reviewCache.portfolio)
+  const { trades: TRADE_HISTORY } = useTradeHistory()
 
   const filteredTrades = useMemo(() => {
     let trades = TRADE_HISTORY
@@ -86,7 +87,7 @@ export function ReviewPage() {
     }
 
     return trades
-  }, [preset, customStart, customEnd, pairFilter, tradeFilter, searchRef])
+  }, [preset, customStart, customEnd, pairFilter, tradeFilter, searchRef, TRADE_HISTORY])
 
   // Reset page when filters change
   const totalPages = Math.ceil(filteredTrades.length / PAGE_SIZE)

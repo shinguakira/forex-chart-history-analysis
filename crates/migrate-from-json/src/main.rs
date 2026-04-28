@@ -1,10 +1,10 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use forex_core::{BacktestRun, Note, PracticeMode, PracticeTrade, Prediction};
+use forex_core::{BacktestRun, Note, PracticeMode, PracticeTrade, Prediction, Trade, TradeDirection};
 use forex_db::{
     connect,
-    entities::{backtest_runs, notes, practice_trades, predictions},
+    entities::{backtest_runs, notes, practice_trades, predictions, trades},
     migrate,
 };
 use sea_orm::{ActiveModelTrait, EntityTrait, Set};
@@ -37,8 +37,47 @@ async fn main() -> anyhow::Result<()> {
     import_predictions(&db, &args.data_dir).await?;
     import_backtests(&db, &args.data_dir).await?;
     import_practice(&db, &args.data_dir).await?;
+    import_trades(&db, &args.data_dir).await?;
 
     info!("done");
+    Ok(())
+}
+
+async fn import_trades(
+    db: &sea_orm::DatabaseConnection,
+    data_dir: &std::path::Path,
+) -> anyhow::Result<()> {
+    let path = data_dir.join("trades.json");
+    if !path.exists() {
+        warn!("trades.json not found, skipping");
+        return Ok(());
+    }
+    let entries: Vec<Trade> = serde_json::from_slice(&std::fs::read(&path)?)?;
+    let mut imported = 0u32;
+    let mut skipped = 0u32;
+    for t in entries {
+        if trades::Entity::find_by_id(t.trade_ref.clone()).one(db).await?.is_some() {
+            skipped += 1;
+            continue;
+        }
+        let am = trades::ActiveModel {
+            trade_ref: Set(t.trade_ref),
+            pair_id: Set(t.pair_id),
+            direction: Set(match t.direction {
+                TradeDirection::Bull => "bull".to_string(),
+                TradeDirection::Bear => "bear".to_string(),
+            }),
+            open_price: Set(t.open_price),
+            close_price: Set(t.close_price),
+            size: Set(t.size),
+            pl: Set(t.pl),
+            open_date: Set(t.open_date),
+            close_date: Set(t.close_date),
+        };
+        am.insert(db).await?;
+        imported += 1;
+    }
+    info!("trades: imported={imported} skipped={skipped}");
     Ok(())
 }
 

@@ -7,8 +7,8 @@ import { PeriodSelector } from '@/components/chart/PeriodSelector'
 import { TimeframeSelector } from '@/components/chart/TimeframeSelector'
 import { TradeToggle } from '@/components/chart/TradeToggle'
 import { getPairById, PAIRS } from '@/config/pairs'
-import { TRADE_HISTORY } from '@/config/trade-history'
 import { useChartData } from '@/hooks/use-chart-data'
+import { useTradeHistory } from '@/hooks/use-trade-history'
 import { useDrag } from '@/hooks/use-drag'
 import { useResize } from '@/hooks/use-resize'
 import { formatPrice, formatPriceChange } from '@/lib/utils'
@@ -37,9 +37,10 @@ export function ChartWindow({ windowId }: Props) {
   const indicators = win?.indicators
   const enabledIndicators = useMemo(() => indicators?.filter((i) => i.enabled) ?? [], [indicators])
   const showTrades = win?.showTrades ?? false
+  const { trades: TRADE_HISTORY } = useTradeHistory()
   const pairTrades = useMemo(
     () => (showTrades ? TRADE_HISTORY.filter((t) => t.pairId === pair.id) : []),
-    [showTrades, pair.id],
+    [showTrades, pair.id, TRADE_HISTORY],
   )
 
   const { onPointerDown: onDragDown } = useDrag({

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { CANVAS_ID } from '@/components/window/WindowCanvas'
-import { TRADE_HISTORY } from '@/config/trade-history'
+import { useTradeHistory } from '@/hooks/use-trade-history'
 import { formatDateJST } from '@/lib/date-utils'
 import { useWindowStore } from '@/store/window-store'
 
@@ -15,14 +15,18 @@ export function TradeHistory() {
   const [filter, setFilter] = useState<'all' | 'bull' | 'bear'>('all')
 
   const navigateToTrade = useWindowStore((s) => s.navigateToTrade)
+  const { trades: TRADE_HISTORY } = useTradeHistory()
 
   const filtered = useMemo(() => {
     const trades =
       filter === 'all' ? TRADE_HISTORY : TRADE_HISTORY.filter((t) => t.direction === filter)
     return trades.slice().reverse()
-  }, [filter])
+  }, [filter, TRADE_HISTORY])
 
-  const totalPl = useMemo(() => TRADE_HISTORY.reduce((sum, t) => sum + t.pl, 0), [])
+  const totalPl = useMemo(
+    () => TRADE_HISTORY.reduce((sum, t) => sum + t.pl, 0),
+    [TRADE_HISTORY],
+  )
 
   const handleTradeClick = (pairId: string, openDate: string) => {
     const timestamp = Math.floor(new Date(openDate).getTime() / 1000)

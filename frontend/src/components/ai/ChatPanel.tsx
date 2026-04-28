@@ -1,5 +1,5 @@
-import { TRADE_HISTORY } from '@/config/trade-history'
 import { useAIChat } from '@/hooks/use-ai-chat'
+import { useTradeHistory } from '@/hooks/use-trade-history'
 import { useAIStore } from '@/store/ai-store'
 import type { AIMessage } from '@/types/ai'
 import { ChatInput } from './ChatInput'
@@ -13,6 +13,7 @@ export function ChatPanel() {
   const setChatOpen = useAIStore((s) => s.setChatOpen)
   const clearChat = useAIStore((s) => s.clearChat)
   const { streaming, currentToken, error, sendMessage } = useAIChat()
+  const { trades: TRADE_HISTORY } = useTradeHistory()
 
   const ctx = chatContext ?? '_default'
   const chatMessages = useAIStore((s) => s.chatHistories[ctx] ?? EMPTY)
