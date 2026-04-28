@@ -24,7 +24,9 @@ tauri-build = { version = "2", features = [] }
 forex-core = { workspace = true }
 forex-db = { workspace = true }
 forex-api = { workspace = true }
-tauri = { version = "2", features = [] }
+forex-ingestor = { workspace = true }
+tauri = { version = "2", features = ["tray-icon"] }
+tauri-plugin-autostart = "2"
 rspc = { version = "0.4", features = ["legacy", "typescript"] }
 tauri-plugin-rspc = "0.2"
 tokio = { workspace = true }

@@ -24,6 +24,7 @@ sqlite = ["forex-db/sqlite"]
 forex-core = { workspace = true }
 forex-db = { workspace = true }
 forex-api = { workspace = true }
+forex-ingestor = { workspace = true }
 rspc = { version = "0.4", features = ["legacy", "typescript"] }
 rspc-axum = { version = "0.3", features = ["ws"] }
 axum = { version = "0.7", features = ["ws"] }

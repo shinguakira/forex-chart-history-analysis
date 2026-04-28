@@ -42,10 +42,29 @@ pub fn export_typescript_bindings(types: &rspc::Types, output_path: &std::path::
 
 pub fn make_ctx(db: Arc<DatabaseConnection>) -> Ctx {
     let yahoo = Arc::new(YahooClient::new().expect("yahoo client"));
-    Ctx { db, yahoo, config: AppConfig::default() }
+    Ctx { db, yahoo, config: Arc::new(tokio::sync::RwLock::new(AppConfig::default())) }
 }
 
-pub fn make_ctx_with_config(db: Arc<DatabaseConnection>, config: AppConfig) -> Ctx {
-    let yahoo = Arc::new(YahooClient::new().expect("yahoo client"));
-    Ctx { db, yahoo, config }
+/// Read app_settings rows and populate the in-memory config snapshot.
+pub async fn load_config_from_db(ctx: &Ctx) -> anyhow::Result<()> {
+    use forex_db::entities::app_settings;
+    use sea_orm::EntityTrait;
+    let rows = app_settings::Entity::find().all(&*ctx.db).await?;
+    let mut cfg = ctx.config.write().await;
+    for row in rows {
+        match row.key.as_str() {
+            "candle_source_default" => {
+                if let Ok(v) = serde_json::from_value::<forex_core::CandleSource>(row.value) {
+                    cfg.candle_source_default = v;
+                }
+            }
+            "ai_provider" => {
+                if let Ok(v) = serde_json::from_value::<forex_core::AiProviderKind>(row.value) {
+                    cfg.ai_provider = v;
+                }
+            }
+            _ => {}
+        }
+    }
+    Ok(())
 }

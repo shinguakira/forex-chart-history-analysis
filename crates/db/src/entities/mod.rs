@@ -1,3 +1,4 @@
+pub mod app_settings;
 pub mod backtest_runs;
 pub mod candles;
 pub mod ingestion_jobs;
@@ -7,6 +8,7 @@ pub mod predictions;
 pub mod trades;
 
 pub mod prelude {
+    pub use super::app_settings::Entity as AppSettings;
     pub use super::backtest_runs::Entity as BacktestRuns;
     pub use super::candles::Entity as Candles;
     pub use super::ingestion_jobs::Entity as IngestionJobs;

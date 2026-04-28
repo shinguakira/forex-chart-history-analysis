@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use axum::{routing::get, Router as AxumRouter};
-use forex_api::{build_procedures, make_ctx};
+use forex_api::{build_procedures, load_config_from_db, make_ctx};
 use forex_db::{connect, migrate};
 use tower_http::cors::CorsLayer;
 use tracing::info;
@@ -26,6 +26,9 @@ async fn main() -> anyhow::Result<()> {
 
     let (procedures, _types) = build_procedures().map_err(|e| anyhow::anyhow!(e))?;
     let ctx = make_ctx(db.clone());
+    load_config_from_db(&ctx).await?;
+    forex_ingestor::recover_orphaned_jobs(&db).await?;
+    forex_ingestor::spawn_scheduler(db.clone(), ctx.yahoo.clone());
 
     let cors = CorsLayer::new()
         .allow_origin(tower_http::cors::Any)

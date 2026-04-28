@@ -23,7 +23,8 @@ pub struct CandlesListInput {
 pub fn mount(r: RouterBuilder<Ctx>) -> RouterBuilder<Ctx> {
     r.query("candles.list", |t| {
         t(|ctx: Ctx, input: CandlesListInput| async move {
-            let source = input.source.unwrap_or(ctx.config.candle_source_default);
+            let default_source = ctx.config.read().await.candle_source_default;
+            let source = input.source.unwrap_or(default_source);
             match source {
                 CandleSource::Yahoo => fetch_yahoo(&ctx, &input).await,
                 CandleSource::Db => fetch_db(&ctx, &input).await,
