@@ -16,7 +16,7 @@ pub struct UpsertInput {
 
 #[derive(Deserialize, Type)]
 #[serde(rename_all = "camelCase")]
-pub struct DeleteInput {
+pub struct NotesDeleteInput {
     pub id: String,
 }
 
@@ -61,7 +61,7 @@ pub fn mount(r: RouterBuilder<Ctx>) -> RouterBuilder<Ctx> {
         })
     })
     .mutation("notes.delete", |t| {
-        t(|ctx: Ctx, input: DeleteInput| async move {
+        t(|ctx: Ctx, input: NotesDeleteInput| async move {
             notes::Entity::delete_many()
                 .filter(notes::Column::Id.eq(input.id))
                 .exec(&*ctx.db)

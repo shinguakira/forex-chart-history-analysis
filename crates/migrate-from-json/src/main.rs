@@ -1,8 +1,12 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use forex_core::Note;
-use forex_db::{connect, entities::notes, migrate};
+use forex_core::{BacktestRun, Note, PracticeMode, PracticeTrade, Prediction};
+use forex_db::{
+    connect,
+    entities::{backtest_runs, notes, practice_trades, predictions},
+    migrate,
+};
 use sea_orm::{ActiveModelTrait, EntityTrait, Set};
 use tracing::{info, warn};
 
@@ -30,8 +34,125 @@ async fn main() -> anyhow::Result<()> {
     migrate(&db).await?;
 
     import_notes(&db, &args.data_dir).await?;
+    import_predictions(&db, &args.data_dir).await?;
+    import_backtests(&db, &args.data_dir).await?;
+    import_practice(&db, &args.data_dir).await?;
 
     info!("done");
+    Ok(())
+}
+
+async fn import_predictions(
+    db: &sea_orm::DatabaseConnection,
+    data_dir: &std::path::Path,
+) -> anyhow::Result<()> {
+    let path = data_dir.join("predictions.json");
+    if !path.exists() {
+        warn!("predictions.json not found, skipping");
+        return Ok(());
+    }
+    let entries: Vec<Prediction> = serde_json::from_slice(&std::fs::read(&path)?)?;
+    let mut imported = 0u32;
+    let mut skipped = 0u32;
+    for p in entries {
+        if predictions::Entity::find_by_id(p.id.clone()).one(db).await?.is_some() {
+            skipped += 1;
+            continue;
+        }
+        let am = predictions::ActiveModel {
+            id: Set(p.id),
+            pair_id: Set(p.pair_id),
+            direction: Set(predictions::direction_to_str(p.direction).to_string()),
+            entry_price: Set(p.entry_price),
+            stop_loss: Set(p.stop_loss),
+            take_profit: Set(p.take_profit),
+            timeframe: Set(p.timeframe),
+            model: Set(p.model),
+            provider: Set(predictions::provider_to_str(p.provider).to_string()),
+            created_at: Set(p.created_at),
+            status: Set(predictions::status_to_str(p.status).to_string()),
+            validated_at: Set(p.validated_at),
+            validation_result: Set(p.validation_result.as_ref().map(serde_json::to_value).transpose()?),
+        };
+        am.insert(db).await?;
+        imported += 1;
+    }
+    info!("predictions: imported={imported} skipped={skipped}");
+    Ok(())
+}
+
+async fn import_backtests(
+    db: &sea_orm::DatabaseConnection,
+    data_dir: &std::path::Path,
+) -> anyhow::Result<()> {
+    let path = data_dir.join("backtests.json");
+    if !path.exists() {
+        warn!("backtests.json not found, skipping");
+        return Ok(());
+    }
+    let entries: Vec<BacktestRun> = serde_json::from_slice(&std::fs::read(&path)?)?;
+    let mut imported = 0u32;
+    let mut skipped = 0u32;
+    for b in entries {
+        if backtest_runs::Entity::find_by_id(b.id.clone()).one(db).await?.is_some() {
+            skipped += 1;
+            continue;
+        }
+        let provider_str = match b.provider {
+            forex_core::AiProviderKind::Claude => "claude".to_string(),
+            forex_core::AiProviderKind::Ollama => "ollama".to_string(),
+        };
+        let data = serde_json::to_value(&b)?;
+        let am = backtest_runs::ActiveModel {
+            id: Set(b.id),
+            model: Set(b.model),
+            provider: Set(provider_str),
+            created_at: Set(b.created_at),
+            data: Set(data),
+        };
+        am.insert(db).await?;
+        imported += 1;
+    }
+    info!("backtests: imported={imported} skipped={skipped}");
+    Ok(())
+}
+
+async fn import_practice(
+    db: &sea_orm::DatabaseConnection,
+    data_dir: &std::path::Path,
+) -> anyhow::Result<()> {
+    let path = data_dir.join("practice-sessions.json");
+    if !path.exists() {
+        warn!("practice-sessions.json not found, skipping");
+        return Ok(());
+    }
+    let entries: Vec<PracticeTrade> = serde_json::from_slice(&std::fs::read(&path)?)?;
+    let mut imported = 0u32;
+    let mut skipped = 0u32;
+    for p in entries {
+        if practice_trades::Entity::find_by_id(p.id.clone()).one(db).await?.is_some() {
+            skipped += 1;
+            continue;
+        }
+        let mode_str = match p.mode {
+            PracticeMode::Replay => "replay",
+            PracticeMode::Quiz => "quiz",
+            PracticeMode::Setup => "setup",
+        };
+        let data = serde_json::to_value(&p)?;
+        let am = practice_trades::ActiveModel {
+            id: Set(p.id),
+            mode: Set(mode_str.to_string()),
+            pair_id: Set(p.pair_id),
+            timeframe: Set(p.timeframe.as_str().to_string()),
+            cutoff_timestamp: Set(p.cutoff_timestamp),
+            created_at: Set(p.created_at),
+            data: Set(data),
+        };
+        am.insert(db).await?;
+        imported += 1;
+    }
+    info!("practice: imported={imported} skipped={skipped}");
     Ok(())
 }
 

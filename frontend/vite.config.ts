@@ -3,19 +3,9 @@ import tailwindcss from '@tailwindcss/vite'
 import { TanStackRouterVite } from '@tanstack/router-vite-plugin'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-import { backtestsPlugin } from './vite-plugin-backtests'
-import { practicePlugin } from './vite-plugin-practice'
-import { predictionsPlugin } from './vite-plugin-predictions'
 
 export default defineConfig({
-  plugins: [
-    react(),
-    tailwindcss(),
-    TanStackRouterVite(),
-    predictionsPlugin(),
-    backtestsPlugin(),
-    practicePlugin(),
-  ],
+  plugins: [react(), tailwindcss(), TanStackRouterVite()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),

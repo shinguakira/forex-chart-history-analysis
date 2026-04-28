@@ -1,62 +1,47 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback } from 'react'
 import type { PracticeTrade } from '@/types/practice'
+import { rspc } from '@/lib/rspc'
 
-async function load(): Promise<PracticeTrade[]> {
-  const res = await fetch('/api/practice')
-  if (!res.ok) return []
-  return res.json()
-}
-
-async function save(trades: PracticeTrade[]): Promise<void> {
-  await fetch('/api/practice', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(trades),
-  })
-}
+const LIST_KEY = ['practice.list'] as const
 
 export function usePracticeSessions() {
-  const [trades, setTrades] = useState<PracticeTrade[]>([])
-  const [loaded, setLoaded] = useState(false)
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const qc = useQueryClient()
 
-  useEffect(() => {
-    load().then((data) => {
-      setTrades(data)
-      setLoaded(true)
-    })
-  }, [])
+  const query = useQuery({
+    queryKey: LIST_KEY,
+    queryFn: () => rspc.query(['practice.list']),
+  })
 
-  const persist = useCallback((updated: PracticeTrade[]) => {
-    setTrades(updated)
-    if (saveTimer.current) clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(() => save(updated), 300)
-  }, [])
+  const upsert = useMutation({
+    mutationFn: (trade: PracticeTrade) => rspc.mutation(['practice.upsert', trade]),
+    onSuccess: () => qc.invalidateQueries({ queryKey: LIST_KEY }),
+  })
 
-  const addTrade = useCallback(
-    (trade: PracticeTrade) => {
-      persist([trade, ...trades])
-    },
-    [trades, persist],
-  )
+  const remove = useMutation({
+    mutationFn: (id: string) => rspc.mutation(['practice.delete', { id }]),
+    onSuccess: () => qc.invalidateQueries({ queryKey: LIST_KEY }),
+  })
 
+  const clear = useMutation({
+    mutationFn: () => rspc.mutation(['practice.clearAll', undefined]),
+    onSuccess: () => qc.invalidateQueries({ queryKey: LIST_KEY }),
+  })
+
+  const trades = (query.data ?? []) as PracticeTrade[]
+  const loaded = query.isSuccess
+
+  const addTrade = useCallback((trade: PracticeTrade) => upsert.mutate(trade), [upsert])
   const updateTrade = useCallback(
     (id: string, patch: Partial<PracticeTrade>) => {
-      persist(trades.map((t) => (t.id === id ? { ...t, ...patch } : t)))
+      const existing = trades.find((t) => t.id === id)
+      if (!existing) return
+      upsert.mutate({ ...existing, ...patch })
     },
-    [trades, persist],
+    [trades, upsert],
   )
-
-  const deleteTrade = useCallback(
-    (id: string) => {
-      persist(trades.filter((t) => t.id !== id))
-    },
-    [trades, persist],
-  )
-
-  const clearAll = useCallback(() => {
-    persist([])
-  }, [persist])
+  const deleteTrade = useCallback((id: string) => remove.mutate(id), [remove])
+  const clearAll = useCallback(() => clear.mutate(), [clear])
 
   return { trades, loaded, addTrade, updateTrade, deleteTrade, clearAll }
 }

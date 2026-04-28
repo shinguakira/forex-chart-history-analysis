@@ -22,18 +22,18 @@ type RunStatus =
   | 'complete'
   | 'error'
 
+import { rspc } from '@/lib/rspc'
+
 async function loadRuns(): Promise<BacktestRun[]> {
-  const res = await fetch('/api/backtests')
-  if (!res.ok) return []
-  return res.json()
+  return (await rspc.query(['backtests.list'])) as BacktestRun[]
 }
 
-async function saveRuns(runs: BacktestRun[]): Promise<void> {
-  await fetch('/api/backtests', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(runs),
-  })
+async function upsertRun(run: BacktestRun): Promise<void> {
+  await rspc.mutation(['backtests.upsert', run])
+}
+
+async function deleteRunApi(id: string): Promise<void> {
+  await rspc.mutation(['backtests.delete', { id }])
 }
 
 function getModelString(provider: 'claude' | 'ollama', ollamaModel: string): string {
@@ -108,9 +108,8 @@ export function useBacktest() {
     })
   }, [])
 
-  const persist = useCallback((updated: BacktestRun[]) => {
+  const setLocal = useCallback((updated: BacktestRun[]) => {
     setRuns(updated)
-    saveRuns(updated)
   }, [])
 
   const runBacktest = useCallback(async (config: BacktestConfig) => {
@@ -258,10 +257,9 @@ export function useBacktest() {
         stats: computeStats(allPredictions),
       }
 
-      setRuns((prev) => {
-        const merged = [run, ...prev]
-        saveRuns(merged)
-        return merged
+      setRuns((prev) => [run, ...prev])
+      upsertRun(run).catch((err) => {
+        setError(err instanceof Error ? err.message : String(err))
       })
       setRunStatus('complete')
       setProgress(null)
@@ -275,9 +273,10 @@ export function useBacktest() {
   const deleteRun = useCallback(
     (id: string) => {
       const updated = runs.filter((r) => r.id !== id)
-      persist(updated)
+      setLocal(updated)
+      deleteRunApi(id).catch((err) => setError(err instanceof Error ? err.message : String(err)))
     },
-    [runs, persist],
+    [runs, setLocal],
   )
 
   const cancel = useCallback(() => {

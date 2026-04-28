@@ -4,6 +4,7 @@ import { parseAIResponse } from '@/lib/ai/parse'
 import { buildPredictionMessages } from '@/lib/ai/prediction-prompts'
 import { createProvider } from '@/lib/ai/provider'
 import { validatePrediction } from '@/lib/predictions/validate'
+import { rspc } from '@/lib/rspc'
 import { useAIStore } from '@/store/ai-store'
 import type { AIMessage } from '@/types/ai'
 import type { Prediction } from '@/types/prediction'
@@ -16,17 +17,27 @@ export interface GenerateOptions {
 }
 
 async function loadPredictions(): Promise<Prediction[]> {
-  const res = await fetch('/api/predictions')
-  if (!res.ok) return []
-  return res.json()
+  return (await rspc.query(['predictions.list'])) as Prediction[]
 }
 
-async function savePredictions(predictions: Prediction[]): Promise<void> {
-  await fetch('/api/predictions', {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(predictions),
-  })
+async function createPredictions(items: Prediction[]): Promise<void> {
+  await rspc.mutation(['predictions.create', { items }])
+}
+
+async function updateValidation(p: Prediction): Promise<void> {
+  await rspc.mutation([
+    'predictions.updateValidation',
+    {
+      id: p.id,
+      status: p.status,
+      validatedAt: p.validatedAt ?? Date.now(),
+      validationResult: p.validationResult,
+    },
+  ])
+}
+
+async function deletePredictionApi(id: string): Promise<void> {
+  await rspc.mutation(['predictions.delete', { id }])
 }
 
 function getModelString(provider: 'claude' | 'ollama', ollamaModel: string): string {
@@ -50,9 +61,8 @@ export function usePredictions() {
     })
   }, [])
 
-  const persist = useCallback((updated: Prediction[]) => {
+  const setLocal = useCallback((updated: Prediction[]) => {
     setPredictions(updated)
-    savePredictions(updated)
   }, [])
 
   const generate = useCallback(async (opts: GenerateOptions) => {
@@ -123,10 +133,9 @@ export function usePredictions() {
                 }
               })
 
-              setPredictions((prev) => {
-                const merged = [...newPredictions, ...prev]
-                savePredictions(merged)
-                return merged
+              setPredictions((prev) => [...newPredictions, ...prev])
+              createPredictions(newPredictions).catch((err) => {
+                setError(err instanceof Error ? err.message : String(err))
               })
               setGenerateStatus('complete')
             } catch (err) {
@@ -155,24 +164,22 @@ export function usePredictions() {
       setValidatingId(id)
       try {
         const result = await validatePrediction(prediction)
-        const updated = predictions.map((p) =>
-          p.id === id
-            ? {
-                ...p,
-                status: result.status,
-                validatedAt: Date.now(),
-                validationResult: result.validationResult,
-              }
-            : p,
-        )
-        persist(updated)
+        const updatedItem: Prediction = {
+          ...prediction,
+          status: result.status,
+          validatedAt: Date.now(),
+          validationResult: result.validationResult,
+        }
+        const updated = predictions.map((p) => (p.id === id ? updatedItem : p))
+        setLocal(updated)
+        await updateValidation(updatedItem)
       } catch (err) {
         setError(err instanceof Error ? err.message : String(err))
       } finally {
         setValidatingId(null)
       }
     },
-    [predictions, persist],
+    [predictions, setLocal],
   )
 
   const validateAll = useCallback(async () => {
@@ -183,16 +190,14 @@ export function usePredictions() {
       setValidatingId(prediction.id)
       try {
         const result = await validatePrediction(prediction)
-        current = current.map((p) =>
-          p.id === prediction.id
-            ? {
-                ...p,
-                status: result.status,
-                validatedAt: Date.now(),
-                validationResult: result.validationResult,
-              }
-            : p,
-        )
+        const updatedItem: Prediction = {
+          ...prediction,
+          status: result.status,
+          validatedAt: Date.now(),
+          validationResult: result.validationResult,
+        }
+        current = current.map((p) => (p.id === prediction.id ? updatedItem : p))
+        await updateValidation(updatedItem)
         await new Promise((r) => setTimeout(r, 500))
       } catch {
         // Skip failed validations
@@ -200,15 +205,18 @@ export function usePredictions() {
     }
 
     setValidatingId(null)
-    persist(current)
-  }, [predictions, persist])
+    setLocal(current)
+  }, [predictions, setLocal])
 
   const deletePrediction = useCallback(
     (id: string) => {
       const updated = predictions.filter((p) => p.id !== id)
-      persist(updated)
+      setLocal(updated)
+      deletePredictionApi(id).catch((err) =>
+        setError(err instanceof Error ? err.message : String(err)),
+      )
     },
-    [predictions, persist],
+    [predictions, setLocal],
   )
 
   const cancel = useCallback(() => {

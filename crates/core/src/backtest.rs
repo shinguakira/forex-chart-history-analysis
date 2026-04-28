@@ -13,16 +13,24 @@ pub enum BacktestStatus {
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct BacktestConfig {
-    #[specta(type = f64)]
-    pub start_timestamp: i64,
-    #[specta(type = f64)]
-    pub end_timestamp: i64,
-    #[specta(type = f64)]
-    pub interval_days: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(type = Option<f64>)]
+    pub start_timestamp: Option<i64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(type = Option<f64>)]
+    pub end_timestamp: Option<i64>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(type = Option<f64>)]
+    pub interval_days: Option<i64>,
+    #[serde(default)]
     pub pair_ids: Vec<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(default, skip_serializing_if = "Option::is_none")]
     #[specta(type = Option<f64>)]
     pub count: Option<i64>,
+    /// Legacy field from older backtest format.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(type = Option<f64>)]
+    pub cutoff_timestamp: Option<i64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
@@ -45,8 +53,9 @@ pub struct BacktestPrediction {
     pub stop_loss: f64,
     pub take_profit: f64,
     pub timeframe: String,
-    #[specta(type = f64)]
-    pub cutoff_timestamp: i64,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(type = Option<f64>)]
+    pub cutoff_timestamp: Option<i64>,
     pub status: BacktestStatus,
     pub validation_result: Option<BacktestValidationResult>,
 }

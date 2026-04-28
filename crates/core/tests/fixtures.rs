@@ -1,10 +1,9 @@
-use forex_core::{Note, PracticeTrade, Prediction, TimeFrame};
+use forex_core::{BacktestRun, Note, PracticeTrade, Prediction, TimeFrame};
 
 const NOTES: &str = include_str!("../../../frontend/data/notes.json");
 const PREDICTIONS: &str = include_str!("../../../frontend/data/predictions.json");
+const BACKTESTS: &str = include_str!("../../../frontend/data/backtests.json");
 const PRACTICE: &str = include_str!("../../../frontend/data/practice-sessions.json");
-// backtests.json fixture predates the current BacktestConfig shape (config holds only
-// cutoffTimestamp/pairIds/count). The migrate-from-json importer will translate it.
 
 #[test]
 fn parses_notes_fixture() {
@@ -19,6 +18,12 @@ fn parses_notes_fixture() {
 fn parses_predictions_fixture() {
     let parsed: Vec<Prediction> = serde_json::from_str(PREDICTIONS).expect("parse predictions");
     assert!(!parsed.is_empty(), "expected at least one prediction");
+}
+
+#[test]
+fn parses_backtests_fixture() {
+    let parsed: Vec<BacktestRun> = serde_json::from_str(BACKTESTS).expect("parse backtests");
+    assert!(!parsed.is_empty());
 }
 
 #[test]
