@@ -1,3 +1,4 @@
+import { useIsAIConfigured } from '@/hooks/use-is-ai-configured'
 import { useAIForecast } from '@/hooks/use-ai-forecast'
 import { formatDateJST } from '@/lib/date-utils'
 import { useAIStore } from '@/store/ai-store'
@@ -9,7 +10,6 @@ import { StructuredResponse } from './StructuredResponse'
 const STALE_MS = 10 * 60 * 1000 // 10 minutes
 
 export function ForecastPage() {
-  const apiKey = useAIStore((s) => s.apiKey)
   const chatOpen = useAIStore((s) => s.chatOpen)
   const setSettingsOpen = useAIStore((s) => s.setSettingsOpen)
   const setChatContext = useAIStore((s) => s.setChatContext)
@@ -17,7 +17,7 @@ export function ForecastPage() {
   const { status, text, error, progress, generateForecast, reset, cancel } = useAIForecast()
   const cached = useAIStore((s) => s.reviewCache.forecast)
 
-  const isConfigured = apiKey.length > 0
+  const isConfigured = useIsAIConfigured()
   const forecastText = cached && status === 'idle' ? cached.content : text
   const isCacheStale = cached ? Date.now() - cached.createdAt > STALE_MS : true
 

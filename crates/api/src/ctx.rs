@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use forex_ai::AIProvider;
 use forex_db::DatabaseConnection;
 use forex_ingestor::YahooClient;
 use tokio::sync::RwLock;
@@ -8,6 +9,7 @@ use tokio::sync::RwLock;
 pub struct Ctx {
     pub db: Arc<DatabaseConnection>,
     pub yahoo: Arc<YahooClient>,
+    pub ai: Arc<dyn AIProvider>,
     pub config: Arc<RwLock<AppConfig>>,
 }
 

@@ -71,9 +71,6 @@ export function usePracticeAIReview() {
     const store = useAIStore.getState()
     const provider = createProvider({
       type: store.provider,
-      apiKey: store.apiKey,
-      ollamaUrl: store.ollamaUrl,
-      ollamaModel: store.ollamaModel,
     })
     if (!provider.isConfigured()) {
       setState({ status: 'error', text: '', error: 'API key not configured', tradeId: trade.id })

@@ -1,3 +1,4 @@
+import { useIsAIConfigured } from '@/hooks/use-is-ai-configured'
 import { useMemo, useState } from 'react'
 import { getPairById, PAIRS } from '@/config/pairs'
 import { usePredictions } from '@/hooks/use-predictions'
@@ -29,7 +30,6 @@ const statusStyles = {
 } as const
 
 export function PredictionsPage() {
-  const apiKey = useAIStore((s) => s.apiKey)
   const setSettingsOpen = useAIStore((s) => s.setSettingsOpen)
 
   // Generation options
@@ -59,7 +59,7 @@ export function PredictionsPage() {
     cancel,
   } = usePredictions()
 
-  const isConfigured = apiKey.length > 0
+  const isConfigured = useIsAIConfigured()
   const isGenerating =
     generateStatus === 'fetching-data' ||
     generateStatus === 'streaming' ||

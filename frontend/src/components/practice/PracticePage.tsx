@@ -1,3 +1,4 @@
+import { useIsAIConfigured } from '@/hooks/use-is-ai-configured'
 import { useAIStore } from '@/store/ai-store'
 import { usePracticeStore } from '@/store/practice-store'
 import type { PracticeMode } from '@/types/practice'
@@ -16,8 +17,8 @@ const MODES: Array<{ id: PracticeMode; label: string; desc: string }> = [
 export function PracticePage() {
   const mode = usePracticeStore((s) => s.mode)
   const setMode = usePracticeStore((s) => s.setMode)
-  const apiKey = useAIStore((s) => s.apiKey)
   const setSettingsOpen = useAIStore((s) => s.setSettingsOpen)
+  const aiConfigured = useIsAIConfigured()
 
   return (
     <div className="h-[calc(100vh-49px)] overflow-y-auto bg-[#0f1117] text-gray-200">
@@ -42,7 +43,7 @@ export function PracticePage() {
                 </button>
               ))}
             </div>
-            {apiKey.length > 0 && <span className="text-[10px] text-green-400">AI ready</span>}
+            {aiConfigured && <span className="text-[10px] text-green-400">AI ready</span>}
             <button
               type="button"
               className="px-3 py-1 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700"

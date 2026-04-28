@@ -1,3 +1,4 @@
+import { useIsAIConfigured } from '@/hooks/use-is-ai-configured'
 import { useMemo, useState } from 'react'
 import { PAIRS } from '@/config/pairs'
 import { useAIReview } from '@/hooks/use-ai-review'
@@ -42,7 +43,6 @@ export function ReviewPage() {
   const [searchRef, setSearchRef] = useState('')
   const [page, setPage] = useState(0)
 
-  const apiKey = useAIStore((s) => s.apiKey)
   const chatOpen = useAIStore((s) => s.chatOpen)
   const setSettingsOpen = useAIStore((s) => s.setSettingsOpen)
   const setChatContext = useAIStore((s) => s.setChatContext)
@@ -95,7 +95,7 @@ export function ReviewPage() {
   const pagedTrades = filteredTrades.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE)
 
   const portfolioText = cached && status === 'idle' ? cached.content : text
-  const isConfigured = apiKey.length > 0
+  const isConfigured = useIsAIConfigured()
 
   const handlePortfolioReview = () => {
     reviewPortfolio(filteredTrades)

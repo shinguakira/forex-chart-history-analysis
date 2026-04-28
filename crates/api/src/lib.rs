@@ -19,6 +19,7 @@ pub fn build_legacy_router() -> LegacyRouter<Ctx> {
     let r = routes::trades::mount(r);
     let r = routes::candles::mount(r);
     let r = routes::ingestion::mount(r);
+    let r = routes::ai::mount(r);
     r.build()
 }
 
@@ -42,7 +43,13 @@ pub fn export_typescript_bindings(types: &rspc::Types, output_path: &std::path::
 
 pub fn make_ctx(db: Arc<DatabaseConnection>) -> Ctx {
     let yahoo = Arc::new(YahooClient::new().expect("yahoo client"));
-    Ctx { db, yahoo, config: Arc::new(tokio::sync::RwLock::new(AppConfig::default())) }
+    let ai: Arc<dyn forex_ai::AIProvider> = Arc::from(forex_ai::from_env());
+    Ctx {
+        db,
+        yahoo,
+        ai,
+        config: Arc::new(tokio::sync::RwLock::new(AppConfig::default())),
+    }
 }
 
 /// Read app_settings rows and populate the in-memory config snapshot.

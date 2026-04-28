@@ -17,9 +17,6 @@ export function useAIChat() {
       const store = useAIStore.getState()
       const provider = createProvider({
         type: store.provider,
-        apiKey: store.apiKey,
-        ollamaUrl: store.ollamaUrl,
-        ollamaModel: store.ollamaModel,
       })
 
       if (!provider.isConfigured()) {

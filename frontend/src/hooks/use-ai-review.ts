@@ -37,9 +37,6 @@ export function useAIReview() {
 
       const provider = createProvider({
         type: store.provider,
-        apiKey: store.apiKey,
-        ollamaUrl: store.ollamaUrl,
-        ollamaModel: store.ollamaModel,
       })
       if (!provider.isConfigured()) {
         setState({ status: 'error', text: '', error: 'API key not configured' })
@@ -119,9 +116,6 @@ export function useAIReview() {
 
     const provider = createProvider({
       type: store.provider,
-      apiKey: store.apiKey,
-      ollamaUrl: store.ollamaUrl,
-      ollamaModel: store.ollamaModel,
     })
     if (!provider.isConfigured()) {
       setState({ status: 'error', text: '', error: 'API key not configured' })

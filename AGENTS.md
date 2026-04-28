@@ -76,9 +76,11 @@ forex-chart-history-analysis/
   chunks the requested range (sizes per timeframe in
   `crates/ingestor/src/chunking.rs`), upserts candles transactionally,
   and resumes from `last_completed_chunk_end` after restart.
-- **AI providers** (Claude / Ollama): currently still called directly
-  from the frontend (`frontend/src/lib/ai/`). Migrating these behind
-  rspc subscriptions is the next planned step.
+- **AI providers** (Claude / Ollama): live in `crates/ai`. The frontend
+  calls `ai.stream` (rspc subscription, WebSocket on web / Tauri channel
+  on desktop). API keys are backend-only — set `ANTHROPIC_API_KEY`,
+  `OLLAMA_URL`, `OLLAMA_MODEL`, and `AI_PROVIDER` in the backend's
+  `.env`.
 
 ## Running
 

@@ -1,3 +1,4 @@
+import { useIsAIConfigured } from '@/hooks/use-is-ai-configured'
 import { useState } from 'react'
 import { getPairById, PAIRS } from '@/config/pairs'
 import { useBacktest } from '@/hooks/use-backtest'
@@ -32,7 +33,6 @@ function formatDate(offset: number): string {
 }
 
 export function BacktestPage() {
-  const apiKey = useAIStore((s) => s.apiKey)
   const setSettingsOpen = useAIStore((s) => s.setSettingsOpen)
 
   const [selectedPairs, setSelectedPairs] = useState<string[]>(['USD_JPY'])
@@ -55,7 +55,7 @@ export function BacktestPage() {
     cancel,
   } = useBacktest()
 
-  const isConfigured = apiKey.length > 0
+  const isConfigured = useIsAIConfigured()
   const isRunning =
     runStatus === 'fetching-data' ||
     runStatus === 'streaming' ||
