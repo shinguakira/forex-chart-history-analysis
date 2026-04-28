@@ -18,6 +18,7 @@ pub fn build_legacy_router() -> LegacyRouter<Ctx> {
     let r = routes::practice::mount(r);
     let r = routes::trades::mount(r);
     let r = routes::candles::mount(r);
+    let r = routes::ingestion::mount(r);
     r.build()
 }
 
