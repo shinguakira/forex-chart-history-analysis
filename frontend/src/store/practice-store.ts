@@ -15,6 +15,14 @@ interface PendingPosition {
   entryTime: number
 }
 
+export type VerdictKind = 'correct' | 'wrong'
+
+interface ResultPulse {
+  kind: VerdictKind
+  /** Monotonic id so the overlay re-fires even when verdict matches the previous one. */
+  id: number
+}
+
 interface PracticeState {
   mode: PracticeMode
   pairId: string
@@ -23,6 +31,8 @@ interface PracticeState {
   blindMode: boolean
   position: PendingPosition | null
   indicators: IndicatorEntry[]
+  soundMuted: boolean
+  pulse: ResultPulse | null
 }
 
 interface PracticeActions {
@@ -35,6 +45,9 @@ interface PracticeActions {
   openPosition: (p: PendingPosition) => void
   clearPosition: () => void
   toggleIndicator: (indicatorId: string) => void
+  setSoundMuted: (m: boolean) => void
+  flashResult: (kind: VerdictKind) => void
+  clearPulse: () => void
 }
 
 export const usePracticeStore = create<PracticeState & PracticeActions>()(
@@ -47,6 +60,8 @@ export const usePracticeStore = create<PracticeState & PracticeActions>()(
       blindMode: false,
       position: null,
       indicators: cloneIndicators(),
+      soundMuted: false,
+      pulse: null,
 
       setMode: (mode) => set({ mode }),
       setPairId: (pairId) => set({ pairId, cursorIndex: null, position: null }),
@@ -67,6 +82,10 @@ export const usePracticeStore = create<PracticeState & PracticeActions>()(
             ind.id === indicatorId ? { ...ind, enabled: !ind.enabled } : ind,
           ),
         })),
+      setSoundMuted: (soundMuted) => set({ soundMuted }),
+      flashResult: (kind) =>
+        set((s) => ({ pulse: { kind, id: (s.pulse?.id ?? 0) + 1 } })),
+      clearPulse: () => set({ pulse: null }),
     }),
     {
       name: 'practice-store',
@@ -76,6 +95,7 @@ export const usePracticeStore = create<PracticeState & PracticeActions>()(
         timeframe: s.timeframe,
         blindMode: s.blindMode,
         indicators: s.indicators,
+        soundMuted: s.soundMuted,
       }),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<PracticeState>

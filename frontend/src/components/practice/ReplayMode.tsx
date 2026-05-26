@@ -80,6 +80,7 @@ export function ReplayMode() {
   const clearPosition = usePracticeStore((s) => s.clearPosition)
   const indicators = usePracticeStore((s) => s.indicators)
   const toggleIndicator = usePracticeStore((s) => s.toggleIndicator)
+  const flashResult = usePracticeStore((s) => s.flashResult)
 
   const pair = getPairById(pairId) ?? PAIRS[0]
   const [goToTimestamp, setGoToTimestamp] = useState<number | null>(null)
@@ -174,8 +175,9 @@ export function ReplayMode() {
       }
       addTrade(trade)
       clearPosition()
+      if (pips !== 0) flashResult(pips > 0 ? 'correct' : 'wrong')
     }
-  }, [position, cursorIndex, candles, pair, timeframe, addTrade, clearPosition])
+  }, [position, cursorIndex, candles, pair, timeframe, addTrade, clearPosition, flashResult])
 
   const randomJump = () => {
     setAutoPlaying(false)
@@ -236,6 +238,7 @@ export function ReplayMode() {
     addTrade(trade)
     clearPosition()
     setNote('')
+    if (pips !== 0) flashResult(pips > 0 ? 'correct' : 'wrong')
   }
 
   const cancelOrder = () => {

@@ -1,3 +1,4 @@
+import { Volume2, VolumeX } from 'lucide-react'
 import { useIsAIConfigured } from '@/hooks/use-is-ai-configured'
 import { useAIStore } from '@/store/ai-store'
 import { usePracticeStore } from '@/store/practice-store'
@@ -6,6 +7,7 @@ import { SettingsDialog } from '../ai/SettingsDialog'
 import { PracticeStats } from './PracticeStats'
 import { QuizMode } from './QuizMode'
 import { ReplayMode } from './ReplayMode'
+import { ResultFlash } from './ResultFlash'
 import { SetupMode } from './SetupMode'
 
 const MODES: Array<{ id: PracticeMode; label: string; desc: string }> = [
@@ -17,6 +19,8 @@ const MODES: Array<{ id: PracticeMode; label: string; desc: string }> = [
 export function PracticePage() {
   const mode = usePracticeStore((s) => s.mode)
   const setMode = usePracticeStore((s) => s.setMode)
+  const soundMuted = usePracticeStore((s) => s.soundMuted)
+  const setSoundMuted = usePracticeStore((s) => s.setSoundMuted)
   const setSettingsOpen = useAIStore((s) => s.setSettingsOpen)
   const aiConfigured = useIsAIConfigured()
 
@@ -46,6 +50,20 @@ export function PracticePage() {
             {aiConfigured && <span className="text-[10px] text-green-400">AI ready</span>}
             <button
               type="button"
+              aria-label={soundMuted ? 'Unmute verdict sounds' : 'Mute verdict sounds'}
+              aria-pressed={soundMuted}
+              title={soundMuted ? 'Sound off' : 'Sound on'}
+              className="p-1.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700"
+              onClick={() => setSoundMuted(!soundMuted)}
+            >
+              {soundMuted ? (
+                <VolumeX size={14} aria-hidden />
+              ) : (
+                <Volume2 size={14} aria-hidden />
+              )}
+            </button>
+            <button
+              type="button"
               className="px-3 py-1 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700"
               onClick={() => setSettingsOpen(true)}
             >
@@ -61,6 +79,7 @@ export function PracticePage() {
         {mode === 'setup' && <SetupMode />}
       </div>
       <SettingsDialog />
+      <ResultFlash />
     </div>
   )
 }

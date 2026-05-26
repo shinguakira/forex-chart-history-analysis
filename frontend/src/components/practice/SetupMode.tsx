@@ -46,6 +46,7 @@ export function SetupMode() {
   const setBlindMode = usePracticeStore((s) => s.setBlindMode)
   const indicators = usePracticeStore((s) => s.indicators)
   const toggleIndicator = usePracticeStore((s) => s.toggleIndicator)
+  const flashResult = usePracticeStore((s) => s.flashResult)
 
   const pair = getPairById(pairId) ?? PAIRS[0]
   const [scenario, setScenario] = useState<ScenarioFilter>('random')
@@ -83,6 +84,7 @@ export function SetupMode() {
       return
     const movePips = pipsBetween(askCandle.close, revealCandle.close, pair.decimals)
     setPhase('revealed')
+    flashResult(judgementCorrect(judgement, movePips) ? 'correct' : 'wrong')
     const trade: PracticeTrade = {
       id: crypto.randomUUID(),
       mode: 'setup',

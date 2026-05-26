@@ -218,9 +218,15 @@ test.describe('Practice — Quiz mode', () => {
 
   test('Submitting UP/DOWN reveals outcome and updates accuracy line', async ({ page }) => {
     test.setTimeout(60_000)
+    // Mute first so the test runner doesn't try to play audio.
+    await page.getByRole('button', { name: /Mute verdict sounds/ }).click()
     await page.getByRole('button', { name: 'New' }).click()
     await page.getByRole('button', { name: 'UP', exact: true }).waitFor({ timeout: 45_000 })
     await page.getByRole('button', { name: 'UP', exact: true }).click()
+    // The full-screen verdict overlay flashes for ~1.2s on submit.
+    const flash = page.getByTestId('result-flash')
+    await expect(flash).toBeVisible({ timeout: 2_000 })
+    await expect(flash).toHaveAttribute('data-verdict', /correct|wrong/)
     await expect(page.getByText('Your call:')).toBeVisible({ timeout: 15_000 })
     await expect(page.getByText('Result:')).toBeVisible()
     // Pips outcome present

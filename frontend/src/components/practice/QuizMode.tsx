@@ -34,6 +34,7 @@ export function QuizMode() {
   const setBlindMode = usePracticeStore((s) => s.setBlindMode)
   const indicators = usePracticeStore((s) => s.indicators)
   const toggleIndicator = usePracticeStore((s) => s.toggleIndicator)
+  const flashResult = usePracticeStore((s) => s.flashResult)
 
   const pair = getPairById(pairId) ?? PAIRS[0]
   const [scenario, setScenario] = useState<ScenarioFilter>('random')
@@ -71,6 +72,7 @@ export function QuizMode() {
     const correct = (choice === 'up' && move > 0) || (choice === 'down' && move < 0)
     setPick(choice)
     setPhase('revealed')
+    flashResult(correct ? 'correct' : 'wrong')
     setStreak((s) => ({
       correct: s.correct + (correct ? 1 : 0),
       wrong: s.wrong + (correct ? 0 : 1),
