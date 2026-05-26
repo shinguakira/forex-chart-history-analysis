@@ -42,6 +42,48 @@ test.describe('Practice page (/practice) — common header & state', () => {
     await expect(page.getByLabel('Blind').first()).toBeChecked()
     await page.getByLabel('Blind').first().uncheck()
   })
+
+  test('Indicator panel is available in every practice mode', async ({ page }) => {
+    // Replay
+    await expect(page.getByRole('button', { name: /^Ind/ })).toBeVisible()
+    // Quiz
+    await page.getByRole('button', { name: 'Quiz' }).click()
+    await expect(page.getByRole('button', { name: /^Ind/ })).toBeVisible()
+    // Setup
+    await page.getByRole('button', { name: 'Setup' }).click()
+    await expect(page.getByRole('button', { name: /^Ind/ })).toBeVisible()
+  })
+
+  test('Toggling SMA-20 in Replay survives polling refresh and persists across modes', async ({
+    page,
+  }) => {
+    test.setTimeout(90_000)
+    // Wait for the candle canvas (ReplayMode auto-fetches on mount).
+    await expect(page.locator('canvas').first()).toBeVisible({ timeout: 45_000 })
+
+    const indBtn = page.getByRole('button', { name: /^Ind/ })
+    await indBtn.click()
+    await page.getByText('SMA 20', { exact: true }).click()
+    await expect(indBtn).toContainText('1')
+
+    // Wait past the 30s candle-polling refetch — the indicator data effect
+    // re-runs against overlays whose chart may have been recreated (StrictMode),
+    // and must not throw "Value is undefined" from lightweight-charts.
+    await page.waitForTimeout(35_000)
+    await expect(
+      page.getByText('Something went wrong!'),
+      'CatchBoundary should not have caught any error',
+    ).toBeHidden()
+
+    // Close the dropdown backdrop, then verify state persists across mode switch.
+    await page.locator('.fixed.inset-0.z-40').click({ force: true })
+    await page.getByRole('button', { name: 'Quiz' }).click()
+    await expect(page.getByRole('button', { name: /^Ind/ })).toContainText('1')
+
+    // Cleanup — toggle SMA back off so later tests start clean.
+    await page.getByRole('button', { name: /^Ind/ }).click()
+    await page.getByText('SMA 20', { exact: true }).click()
+  })
 })
 
 test.describe('Practice — Replay mode', () => {

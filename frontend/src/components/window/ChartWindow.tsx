@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react'
 import { CandlestickChart } from '@/components/chart/CandlestickChart'
 import { GoToDateInput } from '@/components/chart/GoToDateInput'
-import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
+import { WindowIndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { LatestButton } from '@/components/chart/LatestButton'
 import { PeriodSelector } from '@/components/chart/PeriodSelector'
 import { TimeframeSelector } from '@/components/chart/TimeframeSelector'
@@ -121,7 +121,7 @@ export function ChartWindow({ windowId }: Props) {
       <div className="flex items-center justify-between border-b border-gray-700">
         <TimeframeSelector windowId={windowId} />
         <div className="pr-2">
-          <IndicatorPanel windowId={windowId} />
+          <WindowIndicatorPanel windowId={windowId} />
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { TIMEFRAMES } from '@/config/constants'
 import { getPairById, PAIRS } from '@/config/pairs'
 import { useChartData } from '@/hooks/use-chart-data'
@@ -87,6 +88,8 @@ export function ReplayMode() {
   const setBlindMode = usePracticeStore((s) => s.setBlindMode)
   const openPosition = usePracticeStore((s) => s.openPosition)
   const clearPosition = usePracticeStore((s) => s.clearPosition)
+  const indicators = usePracticeStore((s) => s.indicators)
+  const toggleIndicator = usePracticeStore((s) => s.toggleIndicator)
 
   const pair = getPairById(pairId) ?? PAIRS[0]
   const [goToTimestamp, setGoToTimestamp] = useState<number | null>(null)
@@ -377,6 +380,9 @@ export function ReplayMode() {
               {formatPrice(currentPrice, pair.decimals)}
             </span>
           )}
+          <div className={blindMode || !currentCandle ? 'ml-auto' : ''}>
+            <IndicatorPanel indicators={indicators} onToggle={toggleIndicator} />
+          </div>
         </div>
 
         {/* Chart */}
@@ -397,6 +403,7 @@ export function ReplayMode() {
               markers={chartMarkers}
               blindMode={blindMode}
               decimals={pair.decimals}
+              indicators={indicators}
             />
           )}
         </div>

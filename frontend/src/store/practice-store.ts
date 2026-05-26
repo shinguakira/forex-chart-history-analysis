@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { cloneIndicators } from '@/config/indicators'
 import { DEFAULT_PAIR } from '@/config/pairs'
 import type { TimeFrame } from '@/types/candle'
+import type { IndicatorEntry } from '@/types/indicators'
 import type { PracticeMode, ReplayDirection } from '@/types/practice'
 
 interface PendingPosition {
@@ -20,6 +22,7 @@ interface PracticeState {
   cursorIndex: number | null
   blindMode: boolean
   position: PendingPosition | null
+  indicators: IndicatorEntry[]
 }
 
 interface PracticeActions {
@@ -31,6 +34,7 @@ interface PracticeActions {
   setBlindMode: (b: boolean) => void
   openPosition: (p: PendingPosition) => void
   clearPosition: () => void
+  toggleIndicator: (indicatorId: string) => void
 }
 
 export const usePracticeStore = create<PracticeState & PracticeActions>()(
@@ -42,6 +46,7 @@ export const usePracticeStore = create<PracticeState & PracticeActions>()(
       cursorIndex: null,
       blindMode: false,
       position: null,
+      indicators: cloneIndicators(),
 
       setMode: (mode) => set({ mode }),
       setPairId: (pairId) => set({ pairId, cursorIndex: null, position: null }),
@@ -56,6 +61,12 @@ export const usePracticeStore = create<PracticeState & PracticeActions>()(
       setBlindMode: (blindMode) => set({ blindMode }),
       openPosition: (position) => set({ position }),
       clearPosition: () => set({ position: null }),
+      toggleIndicator: (indicatorId) =>
+        set((s) => ({
+          indicators: s.indicators.map((ind) =>
+            ind.id === indicatorId ? { ...ind, enabled: !ind.enabled } : ind,
+          ),
+        })),
     }),
     {
       name: 'practice-store',
@@ -64,7 +75,17 @@ export const usePracticeStore = create<PracticeState & PracticeActions>()(
         pairId: s.pairId,
         timeframe: s.timeframe,
         blindMode: s.blindMode,
+        indicators: s.indicators,
       }),
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<PracticeState>
+        const merged = { ...current, ...p }
+        // Heal indicator list against latest defaults (preserves user toggles for known ids)
+        const defaults = cloneIndicators()
+        const enabledIds = new Set((p.indicators ?? []).filter((i) => i.enabled).map((i) => i.id))
+        merged.indicators = defaults.map((d) => ({ ...d, enabled: enabledIds.has(d.id) }))
+        return merged
+      },
     },
   ),
 )

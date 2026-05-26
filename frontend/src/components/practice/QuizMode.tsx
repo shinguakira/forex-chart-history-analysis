@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { TIMEFRAMES } from '@/config/constants'
 import { getPairById, PAIRS } from '@/config/pairs'
 import {
@@ -33,6 +34,8 @@ export function QuizMode() {
   const setPairId = usePracticeStore((s) => s.setPairId)
   const setTimeframe = usePracticeStore((s) => s.setTimeframe)
   const setBlindMode = usePracticeStore((s) => s.setBlindMode)
+  const indicators = usePracticeStore((s) => s.indicators)
+  const toggleIndicator = usePracticeStore((s) => s.toggleIndicator)
 
   const pair = getPairById(pairId) ?? PAIRS[0]
   const [scenario, setScenario] = useState<ScenarioFilter>('random')
@@ -195,6 +198,9 @@ export function QuizMode() {
             />
             Blind
           </label>
+          <div className="ml-auto">
+            <IndicatorPanel indicators={indicators} onToggle={toggleIndicator} />
+          </div>
         </div>
 
         <div className="rounded-lg border border-gray-800 bg-[#0f1117] h-[480px] overflow-hidden">
@@ -228,6 +234,7 @@ export function QuizMode() {
               markers={markers}
               blindMode={blindMode}
               decimals={pair.decimals}
+              indicators={indicators}
             />
           )}
         </div>

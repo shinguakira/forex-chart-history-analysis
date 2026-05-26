@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useWindowStore } from '@/store/window-store'
+import type { IndicatorEntry } from '@/types/indicators'
 
 const INDICATOR_LABELS: Record<string, { label: string; group: string }> = {
   'sma-20': { label: 'SMA 20', group: 'Moving Averages' },
@@ -20,20 +21,20 @@ function getColor(config: { color?: string; type: string }): string | null {
   return null
 }
 
-interface Props {
-  windowId: string
+interface ControlledProps {
+  indicators: IndicatorEntry[]
+  onToggle: (indicatorId: string) => void
 }
 
-export function IndicatorPanel({ windowId }: Props) {
+/**
+ * Generic indicator picker dropdown. Pass any indicator list and a toggle callback.
+ * Reusable across chart contexts (windowed charts, practice modes, etc.).
+ */
+export function IndicatorPanel({ indicators, onToggle }: ControlledProps) {
   const [open, setOpen] = useState(false)
-  const indicators = useWindowStore(
-    (s) => s.windows.find((w) => w.id === windowId)?.indicators ?? [],
-  )
-  const toggle = useWindowStore((s) => s.toggleWindowIndicator)
-
   const enabledCount = indicators.filter((i) => i.enabled).length
 
-  const groups = new Map<string, typeof indicators>()
+  const groups = new Map<string, IndicatorEntry[]>()
   for (const ind of indicators) {
     const meta = INDICATOR_LABELS[ind.id]
     const group = meta?.group ?? 'Other'
@@ -68,7 +69,13 @@ export function IndicatorPanel({ windowId }: Props) {
 
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setOpen(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setOpen(false)
+            }}
+          />
           <div className="absolute right-0 top-full mt-1 z-50 w-56 bg-gray-900 border border-gray-700 rounded-lg shadow-xl overflow-hidden">
             <div className="px-3 py-2 border-b border-gray-700">
               <h3 className="text-xs font-semibold text-white">Technical Indicators</h3>
@@ -86,7 +93,7 @@ export function IndicatorPanel({ windowId }: Props) {
                       <button
                         type="button"
                         key={ind.id}
-                        onClick={() => toggle(windowId, ind.id)}
+                        onClick={() => onToggle(ind.id)}
                         className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-gray-800 transition-colors"
                       >
                         <div
@@ -128,4 +135,17 @@ export function IndicatorPanel({ windowId }: Props) {
       )}
     </div>
   )
+}
+
+interface WindowProps {
+  windowId: string
+}
+
+/** Window-store-backed wrapper used by the multi-window canvas. */
+export function WindowIndicatorPanel({ windowId }: WindowProps) {
+  const indicators = useWindowStore(
+    (s) => s.windows.find((w) => w.id === windowId)?.indicators ?? [],
+  )
+  const toggle = useWindowStore((s) => s.toggleWindowIndicator)
+  return <IndicatorPanel indicators={indicators} onToggle={(id) => toggle(windowId, id)} />
 }

@@ -1,18 +1,20 @@
 import {
   CandlestickSeries,
   CrosshairMode,
-  createChart,
-  createSeriesMarkers,
   type IChartApi,
   type IPriceLine,
   type ISeriesApi,
   type ISeriesMarkersPluginApi,
   type Time,
+  createChart,
+  createSeriesMarkers,
 } from 'lightweight-charts'
 import { useEffect, useMemo, useRef } from 'react'
 import { CHART_COLORS } from '@/config/constants'
+import { useChartIndicators } from '@/hooks/use-chart-indicators'
 import { formatCandleTimeJST, formatTimeOnlyJST } from '@/lib/date-utils'
 import type { Candle } from '@/types/candle'
+import type { IndicatorEntry } from '@/types/indicators'
 
 type UTCTimestamp = import('lightweight-charts').UTCTimestamp
 
@@ -37,6 +39,7 @@ interface Props {
   markers?: ChartMarker[]
   blindMode?: boolean
   decimals: number
+  indicators?: IndicatorEntry[]
 }
 
 export function PracticeChart({
@@ -46,8 +49,12 @@ export function PracticeChart({
   markers,
   blindMode,
   decimals,
+  indicators,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const rsiContainerRef = useRef<HTMLDivElement>(null)
+  const macdContainerRef = useRef<HTMLDivElement>(null)
+
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
   const linesRef = useRef<IPriceLine[]>([])
@@ -131,6 +138,18 @@ export function PracticeChart({
     )
   }, [visible])
 
+  // ─── Indicators (overlays + RSI/MACD subplots) ───
+  const indicatorsList = useMemo(() => indicators ?? [], [indicators])
+  const { hasRsi, hasMacd } = useChartIndicators({
+    chartRef,
+    candleSeriesRef: seriesRef,
+    data: visible,
+    indicators: indicatorsList,
+    rsiContainerRef,
+    macdContainerRef,
+    subplotOptions: { blindMode },
+  })
+
   // ─── Price lines ───
   useEffect(() => {
     const series = seriesRef.current
@@ -182,5 +201,21 @@ export function PracticeChart({
     )
   }, [markers])
 
-  return <div ref={containerRef} className="w-full h-full" />
+  return (
+    <div className="flex flex-col w-full h-full overflow-hidden">
+      <div ref={containerRef} className="flex-1 overflow-hidden" />
+      {hasRsi && (
+        <div className="border-t border-gray-800">
+          <div className="px-2 py-0.5 text-xs text-gray-500">RSI</div>
+          <div ref={rsiContainerRef} className="w-full" />
+        </div>
+      )}
+      {hasMacd && (
+        <div className="border-t border-gray-800">
+          <div className="px-2 py-0.5 text-xs text-gray-500">MACD</div>
+          <div ref={macdContainerRef} className="w-full" />
+        </div>
+      )}
+    </div>
+  )
 }
