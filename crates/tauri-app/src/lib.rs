@@ -51,6 +51,13 @@ pub fn run() {
             });
             app.manage(ctx);
 
+            // Open DevTools automatically in debug builds so chart / rspc IPC
+            // issues are inspectable without right-click being enabled.
+            #[cfg(debug_assertions)]
+            if let Some(w) = app.get_webview_window("main") {
+                w.open_devtools();
+            }
+
             // Tray: tray menu lets the user re-show the window or quit. Closing
             // the window via the X just hides it, so the scheduler keeps running.
             let show_item = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;

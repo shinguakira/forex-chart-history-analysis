@@ -6,8 +6,7 @@
   "build": {
     "frontendDist": "../../frontend/dist",
     "devUrl": "http://localhost:5173",
-    "beforeDevCommand": "pnpm --dir ../../frontend dev",
-    "beforeBuildCommand": "pnpm --dir ../../frontend build"
+    "beforeDevCommand": "pnpm --dir ../../frontend dev"
   },
   "app": {
     "windows": [
@@ -16,7 +15,8 @@
         "width": 1440,
         "height": 900,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "theme": "Dark"
       }
     ],
     "security": {
@@ -27,7 +27,22 @@
     "active": true,
     "targets": "all",
     "icon": [
-      "icons/icon.png"
-    ]
+      "icons/icon.png",
+      "icons/icon.ico"
+    ],
+    "resources": [
+      "../../target/release/WebView2Loader.dll"
+    ],
+    "shortDescription": "Forex chart history & AI analysis",
+    "longDescription": "Personal forex chart analysis app: Yahoo Finance candles, trade history, predictions, backtests, and AI-assisted review (Claude / Ollama).",
+    "windows": {
+      "nsis": {
+        "installerIcon": "icons/icon.ico",
+        "installMode": "currentUser",
+        "languages": ["English", "Japanese"],
+        "displayLanguageSelector": true,
+        "compression": "lzma"
+      }
+    }
   }
 }
