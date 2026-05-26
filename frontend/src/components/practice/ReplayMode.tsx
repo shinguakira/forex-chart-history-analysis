@@ -1,3 +1,4 @@
+import { Bot, ChevronLeft, ChevronRight, Dices, Pause, Play, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { TIMEFRAMES } from '@/config/constants'
@@ -350,10 +351,11 @@ export function ReplayMode() {
           </select>
           <button
             type="button"
-            className="px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
+            className="flex items-center gap-1 px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
             onClick={randomJump}
           >
-            🎲 Random Jump
+            <Dices size={14} aria-hidden />
+            Random Jump
           </button>
           <label className="flex items-center gap-1 text-[11px] text-gray-400 cursor-pointer">
             <input
@@ -382,7 +384,7 @@ export function ReplayMode() {
             </div>
           ) : candles.length === 0 ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
-              Press 🎲 Random Jump to start a session
+              Press Random Jump to start a session
             </div>
           ) : (
             <PracticeChart
@@ -402,18 +404,22 @@ export function ReplayMode() {
           <button
             type="button"
             disabled={!canStepBack}
-            className="px-3 py-1 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-40"
+            aria-label="Step back 1 bar"
+            className="flex items-center gap-1 px-3 py-1 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-40"
             onClick={() => advanceCursor(-1, candles.length - 1)}
           >
-            ⏪ −1
+            <ChevronLeft size={14} aria-hidden />
+            −1
           </button>
           <button
             type="button"
             disabled={!canStep}
-            className="px-3 py-1 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-40"
+            aria-label="Step forward 1 bar"
+            className="flex items-center gap-1 px-3 py-1 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-40"
             onClick={() => advanceCursor(1, candles.length - 1)}
           >
-            +1 ⏩
+            +1
+            <ChevronRight size={14} aria-hidden />
           </button>
           <button
             type="button"
@@ -434,14 +440,24 @@ export function ReplayMode() {
           <button
             type="button"
             disabled={!canStep}
-            className={`px-3 py-1 text-xs rounded ${
+            className={`flex items-center gap-1 px-3 py-1 text-xs rounded ${
               autoPlaying
                 ? 'bg-yellow-600 text-white hover:bg-yellow-500'
                 : 'bg-green-600 text-white hover:bg-green-500'
             } disabled:opacity-40`}
             onClick={() => setAutoPlaying((p) => !p)}
           >
-            {autoPlaying ? '⏸ Pause' : '▶ Play'}
+            {autoPlaying ? (
+              <>
+                <Pause size={14} aria-hidden />
+                Pause
+              </>
+            ) : (
+              <>
+                <Play size={14} aria-hidden />
+                Play
+              </>
+            )}
           </button>
           <select
             value={playSpeed}
@@ -708,18 +724,20 @@ export function ReplayMode() {
                       </span>
                       <button
                         type="button"
+                        aria-label="AI review"
                         className="text-gray-600 hover:text-blue-400"
                         title="AI review"
                         onClick={() => setReviewTrade(t)}
                       >
-                        🤖
+                        <Bot size={14} aria-hidden />
                       </button>
                       <button
                         type="button"
+                        aria-label="Delete trade"
                         className="text-gray-600 hover:text-red-400"
                         onClick={() => deleteTrade(t.id)}
                       >
-                        ×
+                        <X size={14} aria-hidden />
                       </button>
                     </div>
                   </div>

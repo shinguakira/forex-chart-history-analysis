@@ -149,7 +149,7 @@ export function CandlestickChart({ data, indicators, trades, goToTimestamp, onNa
           position: isBull ? 'belowBar' : 'aboveBar',
           shape: isBull ? 'arrowUp' : 'arrowDown',
           color: '#3b82f6',
-          text: `▶ ${isBull ? 'BUY' : 'SELL'} x${trade.size} @${trade.openPrice.toFixed(3)}`,
+          text: `${isBull ? 'BUY' : 'SELL'} x${trade.size} @${trade.openPrice.toFixed(3)}`,
           size: 2,
         })
       }
@@ -160,7 +160,7 @@ export function CandlestickChart({ data, indicators, trades, goToTimestamp, onNa
           position: isBull ? 'aboveBar' : 'belowBar',
           shape: 'circle',
           color: '#ffffff',
-          text: `◼ ${plText} @${trade.closePrice.toFixed(3)}`,
+          text: `${plText} @${trade.closePrice.toFixed(3)}`,
           size: 2,
         })
       }

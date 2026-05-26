@@ -1,3 +1,4 @@
+import { X } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
 import { CandlestickChart } from '@/components/chart/CandlestickChart'
 import { GoToDateInput } from '@/components/chart/GoToDateInput'
@@ -98,21 +99,14 @@ export function ChartWindow({ windowId }: Props) {
         <div className="flex items-center gap-1">
           <button
             type="button"
+            aria-label="Close chart window"
             onClick={(e) => {
               e.stopPropagation()
               closeWindow(windowId)
             }}
             className="p-1 rounded hover:bg-red-600/80 text-gray-400 hover:text-white transition-colors"
           >
-            <svg
-              className="w-3.5 h-3.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
+            <X size={14} aria-hidden />
           </button>
         </div>
       </div>

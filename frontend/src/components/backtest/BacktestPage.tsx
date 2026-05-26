@@ -1,5 +1,6 @@
-import { useIsAIConfigured } from '@/hooks/use-is-ai-configured'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
+import { useIsAIConfigured } from '@/hooks/use-is-ai-configured'
 import { getPairById, PAIRS } from '@/config/pairs'
 import type { BacktestRun } from '@/generated/bindings'
 import { useBacktest } from '@/hooks/use-backtest'
@@ -391,11 +392,19 @@ export function BacktestPage() {
                   <div className="p-4 flex items-center justify-between">
                     <button
                       type="button"
+                      aria-expanded={isExpanded}
+                      aria-label={isExpanded ? 'Collapse run' : 'Expand run'}
                       className="flex-1 text-left"
                       onClick={() => toggleExpanded(run.id)}
                     >
                       <div className="flex items-center gap-3 text-xs">
-                        <span className="text-gray-500">{isExpanded ? '\u25BC' : '\u25B6'}</span>
+                        <span className="text-gray-500 flex items-center">
+                          {isExpanded ? (
+                            <ChevronDown size={12} aria-hidden />
+                          ) : (
+                            <ChevronRight size={12} aria-hidden />
+                          )}
+                        </span>
                         <span className="text-white font-medium">
                           {formatRange(start, end)}
                         </span>

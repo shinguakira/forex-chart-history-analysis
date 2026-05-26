@@ -1,3 +1,4 @@
+import { ChevronDown, ChevronUp } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import type { ChartPattern } from '@/config/chart-patterns'
 import { PatternChart } from './PatternChart'
@@ -41,10 +42,20 @@ export function PatternCard({ pattern }: Props) {
 
         <button
           type="button"
-          className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+          className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 transition-colors"
           onClick={() => setExpanded(!expanded)}
         >
-          {expanded ? '▲ Hide Details' : '▼ Show Details'}
+          {expanded ? (
+            <>
+              <ChevronUp size={12} aria-hidden />
+              Hide Details
+            </>
+          ) : (
+            <>
+              <ChevronDown size={12} aria-hidden />
+              Show Details
+            </>
+          )}
         </button>
 
         {expanded && (

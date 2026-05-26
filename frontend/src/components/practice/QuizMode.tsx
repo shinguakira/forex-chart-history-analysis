@@ -1,3 +1,4 @@
+import { ArrowRight, Check, Dices, TrendingDown, TrendingUp, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { TIMEFRAMES } from '@/config/constants'
@@ -178,14 +179,15 @@ export function QuizMode() {
           </select>
           <button
             type="button"
-            className="px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
+            className="flex items-center gap-1 px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
             onClick={() => {
               setPhase('idle')
               setPick(null)
               randomJump()
             }}
           >
-            🎲 New
+            <Dices size={14} aria-hidden />
+            New
           </button>
           <label className="flex items-center gap-1 text-[11px] text-gray-400 cursor-pointer">
             <input
@@ -210,19 +212,20 @@ export function QuizMode() {
               <div>No data for that timestamp on this timeframe.</div>
               <button
                 type="button"
-                className="px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
+                className="flex items-center gap-1 px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
                 onClick={() => {
                   setPhase('idle')
                   setPick(null)
                   randomJump()
                 }}
               >
-                🎲 Try Again
+                <Dices size={14} aria-hidden />
+                Try Again
               </button>
             </div>
           ) : candles.length === 0 ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
-              Press 🎲 New to start a quiz
+              Press New to start a quiz
             </div>
           ) : (
             <PracticeChart
@@ -253,17 +256,19 @@ export function QuizMode() {
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  className="px-4 py-3 text-sm rounded bg-green-600 text-white hover:bg-green-500"
+                  className="flex items-center justify-center gap-1 px-4 py-3 text-sm rounded bg-green-600 text-white hover:bg-green-500"
                   onClick={() => submit('up')}
                 >
-                  ▲ UP
+                  <TrendingUp size={16} aria-hidden />
+                  UP
                 </button>
                 <button
                   type="button"
-                  className="px-4 py-3 text-sm rounded bg-red-600 text-white hover:bg-red-500"
+                  className="flex items-center justify-center gap-1 px-4 py-3 text-sm rounded bg-red-600 text-white hover:bg-red-500"
                   onClick={() => submit('down')}
                 >
-                  ▼ DOWN
+                  <TrendingDown size={16} aria-hidden />
+                  DOWN
                 </button>
               </div>
             </div>
@@ -293,28 +298,37 @@ export function QuizMode() {
                   {movePips} pips ({movePips > 0 ? 'up' : movePips < 0 ? 'down' : 'flat'})
                 </span>
                 <span
-                  className={`ml-auto px-2 py-1 text-xs font-bold rounded ${
+                  className={`ml-auto flex items-center gap-1 px-2 py-1 text-xs font-bold rounded ${
                     (pick === 'up' && movePips > 0) || (pick === 'down' && movePips < 0)
                       ? 'bg-green-600 text-white'
                       : 'bg-red-600 text-white'
                   }`}
                 >
-                  {(pick === 'up' && movePips > 0) || (pick === 'down' && movePips < 0)
-                    ? '✓ Correct'
-                    : '✗ Wrong'}
+                  {(pick === 'up' && movePips > 0) || (pick === 'down' && movePips < 0) ? (
+                    <>
+                      <Check size={12} aria-hidden />
+                      Correct
+                    </>
+                  ) : (
+                    <>
+                      <X size={12} aria-hidden />
+                      Wrong
+                    </>
+                  )}
                 </span>
               </div>
               <button
                 type="button"
-                className="w-full px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500"
+                className="flex w-full items-center justify-center gap-1 px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500"
                 onClick={next}
               >
-                Next Question →
+                Next Question
+                <ArrowRight size={14} aria-hidden />
               </button>
             </div>
           )}
           {phase === 'idle' && (
-            <div className="text-xs text-gray-500 text-center py-2">Click 🎲 New to start.</div>
+            <div className="text-xs text-gray-500 text-center py-2">Click New to start.</div>
           )}
         </div>
       </div>
@@ -377,13 +391,18 @@ export function QuizMode() {
                   >
                     <div className="flex items-center gap-1.5 min-w-0">
                       <span
-                        className={`px-1 py-0.5 text-[9px] font-bold uppercase rounded ${
+                        aria-label={q.prediction === 'up' ? 'up' : 'down'}
+                        className={`flex items-center px-1 py-0.5 rounded ${
                           q.prediction === 'up'
                             ? 'bg-green-900/50 text-green-400'
                             : 'bg-red-900/50 text-red-400'
                         }`}
                       >
-                        {q.prediction === 'up' ? '▲' : '▼'}
+                        {q.prediction === 'up' ? (
+                          <TrendingUp size={10} aria-hidden />
+                        ) : (
+                          <TrendingDown size={10} aria-hidden />
+                        )}
                       </span>
                       <span className="text-gray-400 truncate">{p?.displayName ?? t.pairId}</span>
                       <span className="text-gray-600">{t.timeframe}</span>
@@ -394,8 +413,15 @@ export function QuizMode() {
                         {q.actualMove > 0 ? '+' : ''}
                         {q.actualMove}p
                       </span>
-                      <span className={q.correct ? 'text-green-400' : 'text-red-400'}>
-                        {q.correct ? '✓' : '✗'}
+                      <span
+                        aria-label={q.correct ? 'correct' : 'wrong'}
+                        className={q.correct ? 'text-green-400' : 'text-red-400'}
+                      >
+                        {q.correct ? (
+                          <Check size={12} aria-hidden />
+                        ) : (
+                          <X size={12} aria-hidden />
+                        )}
                       </span>
                     </div>
                   </div>

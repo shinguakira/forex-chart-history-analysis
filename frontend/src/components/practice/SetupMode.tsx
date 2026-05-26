@@ -1,3 +1,13 @@
+import {
+  ArrowRight,
+  Bot,
+  Check,
+  Dices,
+  Minus,
+  TrendingDown,
+  TrendingUp,
+  X,
+} from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { TIMEFRAMES } from '@/config/constants'
@@ -192,7 +202,7 @@ export function SetupMode() {
           </select>
           <button
             type="button"
-            className="px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
+            className="flex items-center gap-1 px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
             onClick={() => {
               setPhase('idle')
               setJudgement(null)
@@ -200,7 +210,8 @@ export function SetupMode() {
               randomJump()
             }}
           >
-            🎲 New
+            <Dices size={14} aria-hidden />
+            New
           </button>
           <label className="flex items-center gap-1 text-[11px] text-gray-400 cursor-pointer">
             <input
@@ -225,7 +236,7 @@ export function SetupMode() {
               <div>No data for that timestamp on this timeframe.</div>
               <button
                 type="button"
-                className="px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
+                className="flex items-center gap-1 px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
                 onClick={() => {
                   setPhase('idle')
                   setJudgement(null)
@@ -233,12 +244,13 @@ export function SetupMode() {
                   randomJump()
                 }}
               >
-                🎲 Try Again
+                <Dices size={14} aria-hidden />
+                Try Again
               </button>
             </div>
           ) : candles.length === 0 ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
-              Press 🎲 New to start
+              Press New to start
             </div>
           ) : (
             <PracticeChart
@@ -266,24 +278,29 @@ export function SetupMode() {
                 </div>
               )}
               <div className="grid grid-cols-3 gap-2">
-                {(['long', 'short', 'no-trade'] as Judgement[]).map((j) => (
-                  <button
-                    key={j}
-                    type="button"
-                    className={`px-3 py-2 text-xs rounded font-medium ${
-                      judgement === j
-                        ? j === 'long'
-                          ? 'bg-green-600 text-white'
-                          : j === 'short'
-                            ? 'bg-red-600 text-white'
-                            : 'bg-gray-600 text-white'
-                        : 'bg-gray-800 text-gray-400 hover:text-gray-200'
-                    }`}
-                    onClick={() => setJudgement(j)}
-                  >
-                    {j === 'long' ? '▲ Long' : j === 'short' ? '▼ Short' : '— No Trade'}
-                  </button>
-                ))}
+                {(['long', 'short', 'no-trade'] as Judgement[]).map((j) => {
+                  const Icon = j === 'long' ? TrendingUp : j === 'short' ? TrendingDown : Minus
+                  const label = j === 'long' ? 'Long' : j === 'short' ? 'Short' : 'No Trade'
+                  return (
+                    <button
+                      key={j}
+                      type="button"
+                      className={`flex items-center justify-center gap-1 px-3 py-2 text-xs rounded font-medium ${
+                        judgement === j
+                          ? j === 'long'
+                            ? 'bg-green-600 text-white'
+                            : j === 'short'
+                              ? 'bg-red-600 text-white'
+                              : 'bg-gray-600 text-white'
+                          : 'bg-gray-800 text-gray-400 hover:text-gray-200'
+                      }`}
+                      onClick={() => setJudgement(j)}
+                    >
+                      <Icon size={14} aria-hidden />
+                      {label}
+                    </button>
+                  )
+                })}
               </div>
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-[11px]">
@@ -352,11 +369,21 @@ export function SetupMode() {
                   {movePips} pips
                 </span>
                 <span
-                  className={`ml-auto px-2 py-1 text-xs font-bold rounded ${
+                  className={`ml-auto flex items-center gap-1 px-2 py-1 text-xs font-bold rounded ${
                     lastCorrect ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
                   }`}
                 >
-                  {lastCorrect ? '✓ Right' : '✗ Wrong'}
+                  {lastCorrect ? (
+                    <>
+                      <Check size={12} aria-hidden />
+                      Right
+                    </>
+                  ) : (
+                    <>
+                      <X size={12} aria-hidden />
+                      Wrong
+                    </>
+                  )}
                 </span>
               </div>
               {reason && (
@@ -366,15 +393,16 @@ export function SetupMode() {
               )}
               <button
                 type="button"
-                className="w-full px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500"
+                className="flex w-full items-center justify-center gap-1 px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500"
                 onClick={next}
               >
-                Next Setup →
+                Next Setup
+                <ArrowRight size={14} aria-hidden />
               </button>
             </div>
           )}
           {phase === 'idle' && (
-            <div className="text-xs text-gray-500 text-center py-2">Click 🎲 New to start.</div>
+            <div className="text-xs text-gray-500 text-center py-2">Click New to start.</div>
           )}
         </div>
       </div>
@@ -459,16 +487,24 @@ export function SetupMode() {
                           {s.outcomePips > 0 ? '+' : ''}
                           {s.outcomePips}p
                         </span>
-                        <span className={correct ? 'text-green-400' : 'text-red-400'}>
-                          {correct ? '✓' : '✗'}
+                        <span
+                          aria-label={correct ? 'correct' : 'wrong'}
+                          className={correct ? 'text-green-400' : 'text-red-400'}
+                        >
+                          {correct ? (
+                            <Check size={12} aria-hidden />
+                          ) : (
+                            <X size={12} aria-hidden />
+                          )}
                         </span>
                         <button
                           type="button"
+                          aria-label="AI review"
                           className="text-gray-600 hover:text-blue-400"
                           title="AI review"
                           onClick={() => setReviewTrade(t)}
                         >
-                          🤖
+                          <Bot size={12} aria-hidden />
                         </button>
                       </div>
                     </div>

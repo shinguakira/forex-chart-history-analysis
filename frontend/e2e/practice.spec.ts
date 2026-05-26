@@ -25,10 +25,10 @@ test.describe('Practice page (/practice) — common header & state', () => {
 
   test('switching modes preserves the page', async ({ page }) => {
     await page.getByRole('button', { name: 'Quiz' }).click()
-    await expect(page.getByRole('button', { name: '🎲 New' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'New' })).toBeVisible()
     await page.getByRole('button', { name: 'Setup' }).click()
-    // Setup also has 🎲 New button
-    await expect(page.getByRole('button', { name: '🎲 New' })).toBeVisible()
+    // Setup also has New button
+    await expect(page.getByRole('button', { name: 'New' })).toBeVisible()
     await page.getByRole('button', { name: 'Replay' }).click()
     await expect(page.getByText('Replay Stats')).toBeVisible()
   })
@@ -119,7 +119,7 @@ test.describe('Practice — Replay mode', () => {
 
   test('Random Jump → place valid order → step → manual close', async ({ page }) => {
     test.setTimeout(60_000)
-    await page.getByRole('button', { name: /🎲 Random Jump/ }).click()
+    await page.getByRole('button', { name: /Random Jump/ }).click()
     await expect(page.locator('canvas').first()).toBeVisible({ timeout: 45_000 })
 
     // SL/TP quick-set buttons populate inputs from current price
@@ -144,7 +144,7 @@ test.describe('Practice — Replay mode', () => {
 
   test('Buy with no SL/TP entered does not open a position', async ({ page }) => {
     test.setTimeout(60_000)
-    await page.getByRole('button', { name: /🎲 Random Jump/ }).click()
+    await page.getByRole('button', { name: /Random Jump/ }).click()
     await expect(page.locator('canvas').first()).toBeVisible({ timeout: 45_000 })
     // Click Buy without filling SL/TP — placeOrder() guards on Number.isFinite(sl/tp)
     await page.getByRole('button', { name: 'Buy', exact: true }).click()
@@ -154,7 +154,7 @@ test.describe('Practice — Replay mode', () => {
 
   test('Cancel discards the open position without recording', async ({ page }) => {
     test.setTimeout(60_000)
-    await page.getByRole('button', { name: /🎲 Random Jump/ }).click()
+    await page.getByRole('button', { name: /Random Jump/ }).click()
     await expect(page.locator('canvas').first()).toBeVisible({ timeout: 45_000 })
     await page.getByRole('button', { name: '-20p' }).first().click()
     await page.getByRole('button', { name: '+20p' }).first().click()
@@ -166,7 +166,7 @@ test.describe('Practice — Replay mode', () => {
 
   test('Step buttons +1 / +10 / +50 advance cursor and -1 steps back', async ({ page }) => {
     test.setTimeout(60_000)
-    await page.getByRole('button', { name: /🎲 Random Jump/ }).click()
+    await page.getByRole('button', { name: /Random Jump/ }).click()
     await expect(page.locator('canvas').first()).toBeVisible({ timeout: 45_000 })
     const cursor = page.locator('text=/\\d+ \\/ \\d+/').first()
     const initial = await cursor.innerText()
@@ -174,7 +174,7 @@ test.describe('Practice — Replay mode', () => {
     await page.getByRole('button', { name: '+10', exact: true }).click()
     const after10 = await cursor.innerText()
     expect(Number.parseInt(after10.split('/')[0].trim(), 10)).toBeGreaterThan(initIdx)
-    await page.getByRole('button', { name: '⏪ −1', exact: true }).click()
+    await page.getByRole('button', { name: 'Step back 1 bar', exact: true }).click()
     const afterBack = Number.parseInt(
       (await cursor.innerText()).split('/')[0].trim(),
       10,
@@ -184,13 +184,13 @@ test.describe('Practice — Replay mode', () => {
 
   test('Play / Pause toggle switches button label', async ({ page }) => {
     test.setTimeout(60_000)
-    await page.getByRole('button', { name: /🎲 Random Jump/ }).click()
+    await page.getByRole('button', { name: /Random Jump/ }).click()
     await expect(page.locator('canvas').first()).toBeVisible({ timeout: 45_000 })
-    const playBtn = page.getByRole('button', { name: '▶ Play' })
+    const playBtn = page.getByRole('button', { name: 'Play', exact: true })
     await playBtn.click()
-    await expect(page.getByRole('button', { name: '⏸ Pause' })).toBeVisible({ timeout: 3_000 })
-    await page.getByRole('button', { name: '⏸ Pause' }).click()
-    await expect(page.getByRole('button', { name: '▶ Play' })).toBeVisible({ timeout: 3_000 })
+    await expect(page.getByRole('button', { name: 'Pause', exact: true })).toBeVisible({ timeout: 3_000 })
+    await page.getByRole('button', { name: 'Pause', exact: true }).click()
+    await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible({ timeout: 3_000 })
   })
 
   test('Speed dropdown exposes 4 options', async ({ page }) => {
@@ -218,9 +218,9 @@ test.describe('Practice — Quiz mode', () => {
 
   test('Submitting UP/DOWN reveals outcome and updates accuracy line', async ({ page }) => {
     test.setTimeout(60_000)
-    await page.getByRole('button', { name: '🎲 New' }).click()
-    await page.getByRole('button', { name: '▲ UP' }).waitFor({ timeout: 45_000 })
-    await page.getByRole('button', { name: '▲ UP' }).click()
+    await page.getByRole('button', { name: 'New' }).click()
+    await page.getByRole('button', { name: 'UP', exact: true }).waitFor({ timeout: 45_000 })
+    await page.getByRole('button', { name: 'UP', exact: true }).click()
     await expect(page.getByText('Your call:')).toBeVisible({ timeout: 15_000 })
     await expect(page.getByText('Result:')).toBeVisible()
     // Pips outcome present
@@ -229,20 +229,20 @@ test.describe('Practice — Quiz mode', () => {
 
   test('Next Question advances to a new candle without errors', async ({ page }) => {
     test.setTimeout(90_000)
-    await page.getByRole('button', { name: '🎲 New' }).click()
-    await page.getByRole('button', { name: '▲ UP' }).waitFor({ timeout: 45_000 })
-    await page.getByRole('button', { name: '▲ UP' }).click()
+    await page.getByRole('button', { name: 'New' }).click()
+    await page.getByRole('button', { name: 'UP', exact: true }).waitFor({ timeout: 45_000 })
+    await page.getByRole('button', { name: 'UP', exact: true }).click()
     await expect(page.getByText('Your call:')).toBeVisible({ timeout: 15_000 })
     await page.getByRole('button', { name: /Next/ }).click()
     // Back to asking phase: UP/DOWN visible again
-    await page.getByRole('button', { name: '▲ UP' }).waitFor({ timeout: 45_000 })
+    await page.getByRole('button', { name: 'UP', exact: true }).waitFor({ timeout: 45_000 })
   })
 
   test('Cutoff yellow marker appears in revealed phase (DOM marker text)', async ({ page }) => {
     test.setTimeout(60_000)
-    await page.getByRole('button', { name: '🎲 New' }).click()
-    await page.getByRole('button', { name: '▲ UP' }).waitFor({ timeout: 45_000 })
-    await page.getByRole('button', { name: '▲ UP' }).click()
+    await page.getByRole('button', { name: 'New' }).click()
+    await page.getByRole('button', { name: 'UP', exact: true }).waitFor({ timeout: 45_000 })
+    await page.getByRole('button', { name: 'UP', exact: true }).click()
     // The marker text "Cutoff" is set via lightweight-charts; we approximate by
     // confirming the revealed phase shows accuracy/streak rather than pixel-checking.
     await expect(page.getByText('Your call:')).toBeVisible()
@@ -267,8 +267,8 @@ test.describe('Practice — Setup mode', () => {
     page,
   }) => {
     test.setTimeout(60_000)
-    await page.getByRole('button', { name: '🎲 New' }).click()
-    await page.getByRole('button', { name: '▲ Long' }).waitFor({ timeout: 45_000 })
+    await page.getByRole('button', { name: 'New' }).click()
+    await page.getByRole('button', { name: 'Long', exact: true }).waitFor({ timeout: 45_000 })
     // Click confidence 5 — UI shows "5 / 5"
     await page.getByRole('button', { name: '5', exact: true }).click()
     await expect(page.locator('text=/^5 \\/ 5$/')).toBeVisible()
@@ -279,19 +279,19 @@ test.describe('Practice — Setup mode', () => {
 
   test('Submit & Reveal disabled until a judgement is picked', async ({ page }) => {
     test.setTimeout(60_000)
-    await page.getByRole('button', { name: '🎲 New' }).click()
-    await page.getByRole('button', { name: '▲ Long' }).waitFor({ timeout: 45_000 })
+    await page.getByRole('button', { name: 'New' }).click()
+    await page.getByRole('button', { name: 'Long', exact: true }).waitFor({ timeout: 45_000 })
     const submit = page.getByRole('button', { name: 'Submit & Reveal' })
     await expect(submit).toBeDisabled()
-    await page.getByRole('button', { name: '▼ Short' }).click()
+    await page.getByRole('button', { name: 'Short', exact: true }).click()
     await expect(submit).toBeEnabled()
   })
 
   test('Long judgement → submit → result row shows Right/Wrong badge', async ({ page }) => {
     test.setTimeout(60_000)
-    await page.getByRole('button', { name: '🎲 New' }).click()
-    await page.getByRole('button', { name: '▲ Long' }).waitFor({ timeout: 45_000 })
-    await page.getByRole('button', { name: '▲ Long' }).click()
+    await page.getByRole('button', { name: 'New' }).click()
+    await page.getByRole('button', { name: 'Long', exact: true }).waitFor({ timeout: 45_000 })
+    await page.getByRole('button', { name: 'Long', exact: true }).click()
     await page
       .locator('textarea')
       .first()
@@ -301,15 +301,15 @@ test.describe('Practice — Setup mode', () => {
       page.getByText('Outcome:', { exact: false }).first(),
     ).toBeVisible({ timeout: 15_000 })
     // Right or Wrong badge appears
-    const verdict = page.locator('text=/✓ Right|✗ Wrong/').first()
+    const verdict = page.locator('text=/Right|Wrong/').first()
     await expect(verdict).toBeVisible()
   })
 
   test('No-Trade judgement is selectable', async ({ page }) => {
     test.setTimeout(60_000)
-    await page.getByRole('button', { name: '🎲 New' }).click()
-    await page.getByRole('button', { name: '— No Trade' }).waitFor({ timeout: 45_000 })
-    await page.getByRole('button', { name: '— No Trade' }).click()
+    await page.getByRole('button', { name: 'New' }).click()
+    await page.getByRole('button', { name: 'No Trade', exact: true }).waitFor({ timeout: 45_000 })
+    await page.getByRole('button', { name: 'No Trade', exact: true }).click()
     await expect(page.getByRole('button', { name: 'Submit & Reveal' })).toBeEnabled()
   })
 })

@@ -1,3 +1,4 @@
+import { Check, LineChart } from 'lucide-react'
 import { useState } from 'react'
 import { useWindowStore } from '@/store/window-store'
 import type { IndicatorEntry } from '@/types/indicators'
@@ -49,16 +50,7 @@ export function IndicatorPanel({ indicators, onToggle }: ControlledProps) {
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 px-2 py-1 text-xs rounded transition-colors bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white"
       >
-        <svg
-          className="w-3.5 h-3.5"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="M3 3v18h18" />
-          <path d="M7 16l4-8 4 4 4-6" />
-        </svg>
+        <LineChart size={14} aria-hidden />
         Ind
         {enabledCount > 0 && (
           <span className="ml-0.5 px-1 py-0.5 text-xs rounded-full bg-blue-600 text-white leading-none">
@@ -103,17 +95,7 @@ export function IndicatorPanel({ indicators, onToggle }: ControlledProps) {
                               : 'border-gray-600 bg-transparent'
                           }`}
                         >
-                          {ind.enabled && (
-                            <svg
-                              className="w-2.5 h-2.5 text-white"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="3"
-                            >
-                              <path d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
+                          {ind.enabled && <Check size={10} aria-hidden className="text-white" />}
                         </div>
                         {color && (
                           <span
