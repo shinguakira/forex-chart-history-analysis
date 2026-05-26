@@ -7,7 +7,7 @@ publish.workspace = true
 
 [lib]
 name = "forex_tauri_lib"
-crate-type = ["staticlib", "cdylib", "rlib"]
+crate-type = ["rlib"]
 
 [[bin]]
 name = "forex-tauri"

@@ -46,7 +46,9 @@ pub fn run() {
             let ctx = make_ctx(db_arc.clone());
             tauri::async_runtime::block_on(load_config_from_db(&ctx)).ok();
             tauri::async_runtime::block_on(forex_ingestor::recover_orphaned_jobs(&db_arc)).ok();
-            forex_ingestor::spawn_scheduler(db_arc.clone(), ctx.yahoo.clone());
+            tauri::async_runtime::block_on(async {
+                forex_ingestor::spawn_scheduler(db_arc.clone(), ctx.yahoo.clone());
+            });
             app.manage(ctx);
 
             // Tray: tray menu lets the user re-show the window or quit. Closing
