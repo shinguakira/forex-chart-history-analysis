@@ -2,6 +2,9 @@ import type { TimeFrame } from './candle'
 
 export type PracticeMode = 'replay' | 'quiz' | 'setup'
 
+/** Practice tab — covers the three trading modes plus the review/history tab. */
+export type PracticeView = PracticeMode | 'history'
+
 export type ReplayDirection = 'long' | 'short'
 export type ReplayResult = 'win' | 'loss' | 'manual' | 'breakeven'
 

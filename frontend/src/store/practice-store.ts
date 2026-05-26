@@ -4,7 +4,7 @@ import { cloneIndicators } from '@/config/indicators'
 import { DEFAULT_PAIR } from '@/config/pairs'
 import type { TimeFrame } from '@/types/candle'
 import type { IndicatorEntry } from '@/types/indicators'
-import type { PracticeMode, ReplayDirection } from '@/types/practice'
+import type { PracticeView, ReplayDirection } from '@/types/practice'
 
 interface PendingPosition {
   direction: ReplayDirection
@@ -24,7 +24,7 @@ interface ResultPulse {
 }
 
 interface PracticeState {
-  mode: PracticeMode
+  view: PracticeView
   pairId: string
   timeframe: TimeFrame
   cursorIndex: number | null
@@ -36,7 +36,7 @@ interface PracticeState {
 }
 
 interface PracticeActions {
-  setMode: (mode: PracticeMode) => void
+  setView: (view: PracticeView) => void
   setPairId: (id: string) => void
   setTimeframe: (tf: TimeFrame) => void
   setCursorIndex: (idx: number | null) => void
@@ -53,7 +53,7 @@ interface PracticeActions {
 export const usePracticeStore = create<PracticeState & PracticeActions>()(
   persist(
     (set) => ({
-      mode: 'replay',
+      view: 'replay',
       pairId: DEFAULT_PAIR.id,
       timeframe: '60',
       cursorIndex: null,
@@ -63,7 +63,7 @@ export const usePracticeStore = create<PracticeState & PracticeActions>()(
       soundMuted: false,
       pulse: null,
 
-      setMode: (mode) => set({ mode }),
+      setView: (view) => set({ view }),
       setPairId: (pairId) => set({ pairId, cursorIndex: null, position: null }),
       setTimeframe: (timeframe) => set({ timeframe, cursorIndex: null, position: null }),
       setCursorIndex: (cursorIndex) => set({ cursorIndex }),
@@ -90,7 +90,7 @@ export const usePracticeStore = create<PracticeState & PracticeActions>()(
     {
       name: 'practice-store',
       partialize: (s) => ({
-        mode: s.mode,
+        view: s.view,
         pairId: s.pairId,
         timeframe: s.timeframe,
         blindMode: s.blindMode,

@@ -2,23 +2,25 @@ import { Volume2, VolumeX } from 'lucide-react'
 import { useIsAIConfigured } from '@/hooks/use-is-ai-configured'
 import { useAIStore } from '@/store/ai-store'
 import { usePracticeStore } from '@/store/practice-store'
-import type { PracticeMode } from '@/types/practice'
+import type { PracticeView } from '@/types/practice'
 import { SettingsDialog } from '../ai/SettingsDialog'
+import { HistoryMode } from './HistoryMode'
 import { PracticeStats } from './PracticeStats'
 import { QuizMode } from './QuizMode'
 import { ReplayMode } from './ReplayMode'
 import { ResultFlash } from './ResultFlash'
 import { SetupMode } from './SetupMode'
 
-const MODES: Array<{ id: PracticeMode; label: string; desc: string }> = [
+const VIEWS: Array<{ id: PracticeView; label: string; desc: string }> = [
   { id: 'replay', label: 'Replay', desc: 'Step through bars and trade' },
   { id: 'quiz', label: 'Quiz', desc: 'Up or down? Quick reps' },
   { id: 'setup', label: 'Setup', desc: 'Judge the setup with reasoning' },
+  { id: 'history', label: 'History', desc: 'Review past answers' },
 ]
 
 export function PracticePage() {
-  const mode = usePracticeStore((s) => s.mode)
-  const setMode = usePracticeStore((s) => s.setMode)
+  const view = usePracticeStore((s) => s.view)
+  const setView = usePracticeStore((s) => s.setView)
   const soundMuted = usePracticeStore((s) => s.soundMuted)
   const setSoundMuted = usePracticeStore((s) => s.setSoundMuted)
   const setSettingsOpen = useAIStore((s) => s.setSettingsOpen)
@@ -31,19 +33,19 @@ export function PracticePage() {
           <h1 className="text-xl font-bold text-white">Practice</h1>
           <div className="flex items-center gap-3">
             <div className="flex gap-1">
-              {MODES.map((m) => (
+              {VIEWS.map((v) => (
                 <button
-                  key={m.id}
+                  key={v.id}
                   type="button"
                   className={`px-3 py-1 text-xs rounded transition-colors ${
-                    mode === m.id
+                    view === v.id
                       ? 'bg-blue-600 text-white'
                       : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
                   }`}
-                  onClick={() => setMode(m.id)}
-                  title={m.desc}
+                  onClick={() => setView(v.id)}
+                  title={v.desc}
                 >
-                  {m.label}
+                  {v.label}
                 </button>
               ))}
             </div>
@@ -74,9 +76,10 @@ export function PracticePage() {
 
         <PracticeStats />
 
-        {mode === 'replay' && <ReplayMode />}
-        {mode === 'quiz' && <QuizMode />}
-        {mode === 'setup' && <SetupMode />}
+        {view === 'replay' && <ReplayMode />}
+        {view === 'quiz' && <QuizMode />}
+        {view === 'setup' && <SetupMode />}
+        {view === 'history' && <HistoryMode />}
       </div>
       <SettingsDialog />
       <ResultFlash />

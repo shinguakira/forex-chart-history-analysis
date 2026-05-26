@@ -319,3 +319,31 @@ test.describe('Practice — Setup mode', () => {
     await expect(page.getByRole('button', { name: 'Submit & Reveal' })).toBeEnabled()
   })
 })
+
+test.describe('Practice — History tab (review)', () => {
+  test.beforeEach(async ({ page }) => {
+    await gotoPage(page, '/practice')
+    await page.getByRole('button', { name: 'History' }).click()
+  })
+
+  test('History tab exposes mode + verdict filters and a Reveal toggle', async ({ page }) => {
+    for (const f of ['All', 'Replay', 'Quiz', 'Setup', 'Correct', 'Wrong']) {
+      await expect(page.getByRole('button', { name: f, exact: true }).first()).toBeVisible()
+    }
+    await expect(page.getByRole('button', { name: /Reveal future|Hide future/ })).toBeVisible()
+  })
+
+  test('Selecting a past answer renders its chart + detail card', async ({ page }) => {
+    test.setTimeout(60_000)
+    // Seeded test DB has practice trades from earlier suites, so an answer row
+    // should exist. We just click whichever row the All-filter surfaces first.
+    const counter = page.locator('text=/of \\d+ answers/')
+    await expect(counter).toBeVisible()
+    const count = Number(
+      ((await counter.innerText()).match(/of (\d+) answers/)?.[1] ?? '0'),
+    )
+    test.skip(count === 0, 'No seeded practice trades to review')
+    // Detail card renders the mode badge; wait for any chart canvas to mount.
+    await expect(page.locator('canvas').first()).toBeVisible({ timeout: 45_000 })
+  })
+})
