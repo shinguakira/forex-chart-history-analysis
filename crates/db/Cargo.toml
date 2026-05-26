@@ -1,0 +1,36 @@
+[package]
+name = "forex-db"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[features]
+default = ["sqlite"]
+sqlite = ["sea-orm/sqlx-sqlite", "sea-orm-migration/sqlx-sqlite"]
+postgres = ["sea-orm/sqlx-postgres", "sea-orm-migration/sqlx-postgres"]
+
+[dependencies]
+forex-core = { workspace = true }
+sea-orm = { version = "1", default-features = false, features = [
+  "macros",
+  "runtime-tokio-rustls",
+  "with-chrono",
+  "with-uuid",
+  "with-json",
+] }
+sea-orm-migration = { version = "1", default-features = false, features = [
+  "runtime-tokio-rustls",
+  "with-chrono",
+  "with-uuid",
+  "with-json",
+] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+async-trait = "0.1"
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }

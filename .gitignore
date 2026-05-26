@@ -7,14 +7,39 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Frontend
 node_modules
 dist
-data/
-.tanstack
 dist-ssr
+.tanstack
+data/
 *.local
 .env
 .env.local
+frontend/src/generated/
+
+# Playwright
+frontend/test-results/
+frontend/playwright-report/
+test.db
+test.db-wal
+test.db-shm
+test.db-journal
+
+# Rust / Cargo
+target/
+**/*.rs.bk
+*.pdb
+dev.db
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# Tauri
+src-tauri/target/
+src-tauri/gen/
+crates/tauri-app/gen/
 
 # Editor directories and files
 .vscode/*
