@@ -16,13 +16,12 @@ async fn main() -> anyhow::Result<()> {
         )
         .init();
 
-    let db_url = std::env::var("DATABASE_URL")
-        .unwrap_or_else(|_| "postgres://forex:forex@localhost:5432/forex".to_string());
+    let db_url = std::env::var("DATABASE_URL").unwrap_or_else(|_| default_db_url().to_string());
     let bind_addr = std::env::var("BIND_ADDR").unwrap_or_else(|_| "127.0.0.1:4000".to_string());
 
     let db = Arc::new(connect(&db_url).await?);
     migrate(&db).await?;
-    info!("connected to db: {}", db_url);
+    info!("connected to {} db: {}", backend_label(&db_url), db_url);
 
     let (procedures, _types) = build_procedures().map_err(|e| anyhow::anyhow!(e))?;
     let ctx = make_ctx(db.clone());
@@ -47,4 +46,28 @@ async fn main() -> anyhow::Result<()> {
     info!("listening on http://{}", bind_addr);
     axum::serve(listener, app).await?;
     Ok(())
+}
+
+/// Default DATABASE_URL when none is set. Prefer postgres when compiled in
+/// (server is postgres-first); fall back to a local sqlite file otherwise so
+/// a `--no-default-features --features sqlite` build is still self-contained.
+fn default_db_url() -> &'static str {
+    #[cfg(feature = "postgres")]
+    {
+        "postgres://forex:forex@localhost:5432/forex"
+    }
+    #[cfg(all(feature = "sqlite", not(feature = "postgres")))]
+    {
+        "sqlite://./forex.db?mode=rwc"
+    }
+}
+
+fn backend_label(url: &str) -> &'static str {
+    if url.starts_with("postgres://") || url.starts_with("postgresql://") {
+        "postgres"
+    } else if url.starts_with("sqlite:") {
+        "sqlite"
+    } else {
+        "unknown"
+    }
 }

@@ -1,16 +1,65 @@
 use std::sync::Arc;
 
+#[cfg(feature = "sqlite")]
+use anyhow::Context;
 use forex_api::{Ctx, build_procedures, load_config_from_db, make_ctx};
 use forex_db::{connect, migrate};
 use tauri::{
-    Manager, WindowEvent,
+    AppHandle, Manager, WindowEvent,
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
 };
 use tauri_plugin_autostart::MacosLauncher;
 
+/// Resolve the DB URL the desktop app should use.
+///
+/// Precedence:
+/// 1. `DATABASE_URL` env var (works for both sqlite:// and postgres:// — sea-orm
+///    dispatches on scheme as long as the corresponding feature was compiled).
+/// 2. SQLite file under the platform AppData dir, *only* when the `sqlite`
+///    feature is enabled. Postgres-only builds require the env var.
+fn resolve_db_url(app: &AppHandle) -> anyhow::Result<String> {
+    if let Ok(url) = std::env::var("DATABASE_URL") {
+        let trimmed = url.trim();
+        if !trimmed.is_empty() {
+            return Ok(trimmed.to_string());
+        }
+    }
+
+    #[cfg(feature = "sqlite")]
+    {
+        let app_data = app.path().app_data_dir().context("app_data_dir")?;
+        std::fs::create_dir_all(&app_data).ok();
+        let db_path = app_data.join("forex.db");
+        return Ok(format!("sqlite://{}?mode=rwc", db_path.display()));
+    }
+
+    #[cfg(not(feature = "sqlite"))]
+    {
+        let _ = app;
+        anyhow::bail!(
+            "no DATABASE_URL set and this build was compiled without the `sqlite` \
+             feature — set DATABASE_URL to a postgres:// URL before launching",
+        );
+    }
+}
+
+fn backend_label(url: &str) -> &'static str {
+    if url.starts_with("postgres://") || url.starts_with("postgresql://") {
+        "postgres"
+    } else if url.starts_with("sqlite:") {
+        "sqlite"
+    } else {
+        "unknown"
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    // Pick up .env from the working dir / parents so `cargo tauri dev` shares
+    // the same DATABASE_URL conventions as the web server.
+    dotenvy::dotenv().ok();
+
     tracing_subscriber::fmt()
         .with_env_filter(
             tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
@@ -29,13 +78,10 @@ pub fn run() {
             Some(vec!["--silent"]),
         ))
         .setup(|app| {
-            let app_data = app.path().app_data_dir().expect("app_data_dir");
-            std::fs::create_dir_all(&app_data).ok();
-            let db_path = app_data.join("forex.db");
-            let db_url = format!("sqlite://{}?mode=rwc", db_path.display());
-            tracing::info!("opening sqlite at {db_url}");
+            let db_url = resolve_db_url(app.handle()).expect("resolve DATABASE_URL");
+            tracing::info!("opening {} db: {}", backend_label(&db_url), db_url);
 
-            let db = tauri::async_runtime::block_on(async move {
+            let db = tauri::async_runtime::block_on(async {
                 let db = connect(&db_url).await?;
                 migrate(&db).await?;
                 Ok::<_, anyhow::Error>(db)

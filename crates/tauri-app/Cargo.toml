@@ -15,7 +15,12 @@ path = "src/main.rs"
 
 [features]
 default = ["sqlite"]
+# Pick one or both. With both, the runtime DATABASE_URL scheme decides
+# (sea-orm dispatches on `sqlite://` vs `postgres://`). With sqlite only,
+# the desktop app falls back to a per-user AppData file; with postgres
+# only, DATABASE_URL is required at launch.
 sqlite = ["forex-db/sqlite"]
+postgres = ["forex-db/postgres"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -35,3 +40,4 @@ tracing-subscriber = { workspace = true }
 anyhow = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+dotenvy = "0.15"
