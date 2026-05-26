@@ -84,7 +84,7 @@ function streamAI(
   })
 }
 
-export interface BacktestProgress {
+interface BacktestProgress {
   cutoffIndex: number
   cutoffTotal: number
   phase: RunStatus

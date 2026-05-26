@@ -11,7 +11,7 @@ import type { Prediction } from '@/types/prediction'
 
 type GenerateStatus = 'idle' | 'fetching-data' | 'streaming' | 'parsing' | 'complete' | 'error'
 
-export interface GenerateOptions {
+interface GenerateOptions {
   pairIds: string[]
   count?: number
 }

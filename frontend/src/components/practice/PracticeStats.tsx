@@ -1,12 +1,7 @@
 import { useMemo } from 'react'
 import { usePracticeSessions } from '@/hooks/use-practice-sessions'
+import { judgementCorrect } from '@/lib/practice'
 import type { PracticeTrade } from '@/types/practice'
-
-function judgementCorrect(j: 'long' | 'short' | 'no-trade', pips: number): boolean {
-  if (j === 'long') return pips > 0
-  if (j === 'short') return pips < 0
-  return Math.abs(pips) < 20
-}
 
 function aggregate(trades: PracticeTrade[]) {
   const replay = trades.filter((t) => t.mode === 'replay' && t.replay)

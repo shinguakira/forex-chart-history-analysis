@@ -11,6 +11,8 @@ import {
 } from '@/hooks/use-practice-session'
 import { usePracticeSessions } from '@/hooks/use-practice-sessions'
 import { formatDateJST } from '@/lib/date-utils'
+import { calcPips } from '@/lib/practice'
+import { formatPrice } from '@/lib/utils'
 import { usePracticeStore } from '@/store/practice-store'
 import type { Candle, TimeFrame } from '@/types/candle'
 import type { PracticeTrade, ReplayDirection } from '@/types/practice'
@@ -23,19 +25,6 @@ const SCENARIOS: Array<{ id: ScenarioFilter; label: string }> = [
   { id: 'consolidation', label: 'Range' },
   { id: 'gap', label: 'Gap' },
 ]
-
-function pipMultiplier(decimals: number): number {
-  return decimals === 3 ? 100 : 10000
-}
-
-function formatPrice(price: number, decimals: number): string {
-  return price.toFixed(decimals)
-}
-
-function calcPips(direction: ReplayDirection, entry: number, exit: number, decimals: number) {
-  const diff = direction === 'long' ? exit - entry : entry - exit
-  return Math.round(diff * pipMultiplier(decimals) * 10) / 10
-}
 
 interface AutoCloseResult {
   exitIndex: number

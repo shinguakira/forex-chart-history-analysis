@@ -9,6 +9,7 @@ import {
 } from '@/hooks/use-practice-session'
 import { usePracticeSessions } from '@/hooks/use-practice-sessions'
 import { formatDateJST } from '@/lib/date-utils'
+import { judgementCorrect, pipsBetween, type SetupJudgement } from '@/lib/practice'
 import { usePracticeStore } from '@/store/practice-store'
 import type { TimeFrame } from '@/types/candle'
 import type { PracticeTrade } from '@/types/practice'
@@ -24,18 +25,7 @@ const SCENARIOS: Array<{ id: ScenarioFilter; label: string }> = [
 
 const BARS_AHEAD_OPTIONS = [10, 20, 50, 100]
 
-type Judgement = 'long' | 'short' | 'no-trade'
-
-function pipMultiplier(decimals: number): number {
-  return decimals === 3 ? 100 : 10000
-}
-
-function judgementCorrect(j: Judgement, pips: number): boolean {
-  if (j === 'long') return pips > 0
-  if (j === 'short') return pips < 0
-  // no-trade: "correct" if move was small
-  return Math.abs(pips) < 20
-}
+type Judgement = SetupJudgement
 
 export function SetupMode() {
   const pairId = usePracticeStore((s) => s.pairId)
@@ -81,8 +71,7 @@ export function SetupMode() {
   const submit = () => {
     if (!judgement || !askCandle || !revealCandle || cursorIndex == null || revealIdx == null)
       return
-    const movePips =
-      Math.round((revealCandle.close - askCandle.close) * pipMultiplier(pair.decimals) * 10) / 10
+    const movePips = pipsBetween(askCandle.close, revealCandle.close, pair.decimals)
     setPhase('revealed')
     const trade: PracticeTrade = {
       id: crypto.randomUUID(),
@@ -150,9 +139,7 @@ export function SetupMode() {
   }, [setupTrades])
 
   const movePips =
-    askCandle && revealCandle
-      ? Math.round((revealCandle.close - askCandle.close) * pipMultiplier(pair.decimals) * 10) / 10
-      : 0
+    askCandle && revealCandle ? pipsBetween(askCandle.close, revealCandle.close, pair.decimals) : 0
   const lastCorrect = judgement ? judgementCorrect(judgement, movePips) : false
 
   return (

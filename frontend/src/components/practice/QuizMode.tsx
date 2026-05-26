@@ -9,6 +9,7 @@ import {
 } from '@/hooks/use-practice-session'
 import { usePracticeSessions } from '@/hooks/use-practice-sessions'
 import { formatDateJST } from '@/lib/date-utils'
+import { pipsBetween } from '@/lib/practice'
 import { usePracticeStore } from '@/store/practice-store'
 import type { TimeFrame } from '@/types/candle'
 import type { PracticeTrade } from '@/types/practice'
@@ -22,10 +23,6 @@ const SCENARIOS: Array<{ id: ScenarioFilter; label: string }> = [
 ]
 
 const BARS_AHEAD_OPTIONS = [5, 10, 20, 50]
-
-function pipMultiplier(decimals: number): number {
-  return decimals === 3 ? 100 : 10000
-}
 
 export function QuizMode() {
   const pairId = usePracticeStore((s) => s.pairId)
@@ -87,7 +84,7 @@ export function QuizMode() {
       quiz: {
         prediction: choice,
         barsAhead,
-        actualMove: Math.round(move * pipMultiplier(pair.decimals) * 10) / 10,
+        actualMove: pipsBetween(askCandle.close, revealCandle.close, pair.decimals),
         correct,
       },
     }
@@ -127,7 +124,7 @@ export function QuizMode() {
 
   const movePips =
     askCandle && revealCandle
-      ? Math.round((revealCandle.close - askCandle.close) * pipMultiplier(pair.decimals) * 10) / 10
+      ? pipsBetween(askCandle.close, revealCandle.close, pair.decimals)
       : 0
 
   return (
