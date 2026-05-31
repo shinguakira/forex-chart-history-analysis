@@ -1,0 +1,44 @@
+# Build outputs — rebuilt inside the image
+target/
+**/target/
+frontend/dist/
+frontend/node_modules/
+node_modules/
+
+# Local databases / artifacts
+*.db
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+dev.db
+test.db
+
+# Generated bindings — rebuilt by cargo during the backend stage if needed
+frontend/src/generated/
+
+# Tauri desktop artifacts — not used in the container image
+crates/tauri-app/gen/
+crates/tauri-app/icons/
+
+# Test results / reports
+test-results/
+frontend/test-results/
+frontend/playwright-report/
+
+# Editor / VCS / OS junk
+.git/
+.github/
+.vscode/
+.idea/
+.DS_Store
+*.log
+
+# Local env (don't bake secrets into the image — pass via app settings)
+.env
+.env.local
+**/.env
+**/.env.local
+
+# Docs are not needed at build time
+docs/
