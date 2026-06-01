@@ -1,4 +1,4 @@
-import { Bot, Check, Eye, EyeOff, Trash2, X } from 'lucide-react'
+import { Bot, Check, Download, Eye, EyeOff, Trash2, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { getPairById, PAIRS } from '@/config/pairs'
@@ -7,6 +7,7 @@ import { PERIOD_FOR_PRACTICE_TF } from '@/hooks/use-practice-session'
 import { usePracticeSessions } from '@/hooks/use-practice-sessions'
 import { formatDateJST } from '@/lib/date-utils'
 import { judgementCorrect } from '@/lib/practice'
+import { exportPracticeCsv, exportPracticeJson } from '@/lib/practice-export'
 import { usePracticeStore } from '@/store/practice-store'
 import type { PracticeMode, PracticeTrade } from '@/types/practice'
 import { AIReviewModal } from './AIReviewModal'
@@ -217,6 +218,26 @@ export function HistoryMode() {
           >
             {revealFuture ? <Eye size={14} aria-hidden /> : <EyeOff size={14} aria-hidden />}
             {revealFuture ? 'Hide future' : 'Reveal future'}
+          </button>
+          <button
+            type="button"
+            disabled={filtered.length === 0}
+            className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-40"
+            onClick={() => exportPracticeCsv(filtered)}
+            title={`Download ${filtered.length} filtered answer(s) as CSV`}
+          >
+            <Download size={14} aria-hidden />
+            CSV
+          </button>
+          <button
+            type="button"
+            disabled={filtered.length === 0}
+            className="flex items-center gap-1 px-2 py-1 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-40"
+            onClick={() => exportPracticeJson(filtered)}
+            title={`Download ${filtered.length} filtered answer(s) as JSON`}
+          >
+            <Download size={14} aria-hidden />
+            JSON
           </button>
           <IndicatorPanel indicators={indicators} onToggle={toggleIndicator} />
         </div>
