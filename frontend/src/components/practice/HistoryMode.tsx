@@ -242,7 +242,10 @@ export function HistoryMode() {
           <IndicatorPanel indicators={indicators} onToggle={toggleIndicator} />
         </div>
 
-        <div className="rounded-lg border border-gray-800 bg-[#0f1117] h-[480px] overflow-hidden">
+        <div
+          data-no-swipe
+          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[60vh] md:h-[480px] overflow-hidden"
+        >
           {!selected ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
               {trades.length === 0

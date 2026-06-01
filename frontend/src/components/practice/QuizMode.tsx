@@ -1,5 +1,5 @@
-import { ArrowRight, Check, Dices, TrendingDown, TrendingUp, X } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { ArrowRight, Check, Dices, Flame, TrendingDown, TrendingUp, X } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { TIMEFRAMES } from '@/config/constants'
 import { getPairById, PAIRS } from '@/config/pairs'
@@ -35,6 +35,8 @@ export function QuizMode() {
   const indicators = usePracticeStore((s) => s.indicators)
   const toggleIndicator = usePracticeStore((s) => s.toggleIndicator)
   const flashResult = usePracticeStore((s) => s.flashResult)
+  const autoContinue = usePracticeStore((s) => s.quizAutoContinue)
+  const setAutoContinue = usePracticeStore((s) => s.setQuizAutoContinue)
 
   const pair = getPairById(pairId) ?? PAIRS[0]
   const [scenario, setScenario] = useState<ScenarioFilter>('random')
@@ -50,6 +52,12 @@ export function QuizMode() {
   const [phase, setPhase] = useState<'idle' | 'asking' | 'revealed'>('idle')
   const [pick, setPick] = useState<'up' | 'down' | null>(null)
   const [streak, setStreak] = useState({ correct: 0, wrong: 0 })
+  // Consecutive-correct streak (resets on any wrong answer). Drives the
+  // "🔥 N in a row!" overlay separately from the session totals above.
+  const [consecutive, setConsecutive] = useState(0)
+  // Auto-continue timer handle, kept on a ref so it can be cancelled when
+  // the user navigates away or toggles the setting off mid-countdown.
+  const autoContinueTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const { candles, cursorIndex, isLoading, randomJump, goToTimestamp } = session
   const { addTrade, trades } = usePracticeSessions()
@@ -77,6 +85,7 @@ export function QuizMode() {
       correct: s.correct + (correct ? 1 : 0),
       wrong: s.wrong + (correct ? 0 : 1),
     }))
+    setConsecutive((c) => (correct ? c + 1 : 0))
     const trade: PracticeTrade = {
       id: crypto.randomUUID(),
       mode: 'quiz',
@@ -95,10 +104,30 @@ export function QuizMode() {
   }
 
   const next = () => {
+    if (autoContinueTimer.current) {
+      clearTimeout(autoContinueTimer.current)
+      autoContinueTimer.current = null
+    }
     setPick(null)
     setPhase('idle')
     randomJump()
   }
+
+  // Auto-continue: after revealing, queue the next question. 1.5s is long
+  // enough to read the verdict + streak overlay without feeling sticky.
+  useEffect(() => {
+    if (!autoContinue || phase !== 'revealed') return
+    autoContinueTimer.current = setTimeout(() => {
+      autoContinueTimer.current = null
+      next()
+    }, 1500)
+    return () => {
+      if (autoContinueTimer.current) {
+        clearTimeout(autoContinueTimer.current)
+        autoContinueTimer.current = null
+      }
+    }
+  }, [autoContinue, phase])
 
   const visibleCursor = phase === 'revealed' ? revealIdx : cursorIndex
 
@@ -199,12 +228,32 @@ export function QuizMode() {
             />
             Blind
           </label>
+          <label className="flex items-center gap-1 text-[11px] text-gray-400 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={autoContinue}
+              onChange={(e) => setAutoContinue(e.target.checked)}
+            />
+            Auto-continue
+          </label>
+          {consecutive >= 3 && (
+            <span
+              className="flex items-center gap-1 text-[11px] font-bold text-orange-400"
+              title="Consecutive correct answers"
+            >
+              <Flame size={12} aria-hidden />
+              {consecutive} in a row
+            </span>
+          )}
           <div className="ml-auto">
             <IndicatorPanel indicators={indicators} onToggle={toggleIndicator} />
           </div>
         </div>
 
-        <div className="rounded-lg border border-gray-800 bg-[#0f1117] h-[480px] overflow-hidden">
+        <div
+          data-no-swipe
+          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[60vh] md:h-[480px] overflow-hidden"
+        >
           {isLoading ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
               Loading chart...
@@ -433,6 +482,44 @@ export function QuizMode() {
           )}
         </div>
       </div>
+
+      {/* Mobile sticky action bar — UP/DOWN during asking, Next during reveal.
+          Hidden on md+ because the inline question card is already near
+          the chart there. */}
+      {phase !== 'idle' && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-gray-800 bg-[#0f1117]/95 backdrop-blur px-4 py-3 shadow-2xl">
+          {phase === 'asking' && (
+            <div className="flex gap-3 max-w-7xl mx-auto">
+              <button
+                type="button"
+                className="flex-1 py-3 text-base font-bold rounded bg-green-600 text-white active:bg-green-700 flex items-center justify-center gap-1"
+                onClick={() => submit('up')}
+              >
+                <TrendingUp size={18} aria-hidden />
+                UP
+              </button>
+              <button
+                type="button"
+                className="flex-1 py-3 text-base font-bold rounded bg-red-600 text-white active:bg-red-700 flex items-center justify-center gap-1"
+                onClick={() => submit('down')}
+              >
+                <TrendingDown size={18} aria-hidden />
+                DOWN
+              </button>
+            </div>
+          )}
+          {phase === 'revealed' && (
+            <button
+              type="button"
+              className="w-full py-3 text-base font-bold rounded bg-blue-600 text-white active:bg-blue-700 flex items-center justify-center gap-1 max-w-7xl mx-auto"
+              onClick={next}
+            >
+              {autoContinue ? 'Next (auto…)' : 'Next Question'}
+              <ArrowRight size={18} aria-hidden />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

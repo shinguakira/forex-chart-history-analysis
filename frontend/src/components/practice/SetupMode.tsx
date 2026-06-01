@@ -228,7 +228,10 @@ export function SetupMode() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-gray-800 bg-[#0f1117] h-[480px] overflow-hidden">
+        <div
+          data-no-swipe
+          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[60vh] md:h-[480px] overflow-hidden"
+        >
           {isLoading ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
               Loading chart...
@@ -518,6 +521,63 @@ export function SetupMode() {
           )}
         </div>
       </div>
+      {/* Mobile sticky action bar — Long/Short/No-trade chips during asking,
+          Submit once a judgement is picked, Next after reveal. Confidence
+          and reason inputs stay in the form above; sticky bar only owns
+          the primary CTA so it doesn't dominate. */}
+      {phase !== 'idle' && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-gray-800 bg-[#0f1117]/95 backdrop-blur px-4 py-3 shadow-2xl">
+          {phase === 'asking' && (
+            <div className="flex flex-col gap-2 max-w-7xl mx-auto">
+              <div className="grid grid-cols-3 gap-2">
+                {(['long', 'short', 'no-trade'] as Judgement[]).map((j) => {
+                  const Icon = j === 'long' ? TrendingUp : j === 'short' ? TrendingDown : Minus
+                  const label = j === 'long' ? 'Long' : j === 'short' ? 'Short' : 'No Trade'
+                  const active = judgement === j
+                  return (
+                    <button
+                      key={j}
+                      type="button"
+                      className={`flex items-center justify-center gap-1 py-2 text-sm font-semibold rounded ${
+                        active
+                          ? j === 'long'
+                            ? 'bg-green-600 text-white'
+                            : j === 'short'
+                              ? 'bg-red-600 text-white'
+                              : 'bg-gray-600 text-white'
+                          : 'bg-gray-800 text-gray-300 active:bg-gray-700'
+                      }`}
+                      onClick={() => setJudgement(j)}
+                    >
+                      <Icon size={14} aria-hidden />
+                      {label}
+                    </button>
+                  )
+                })}
+              </div>
+              <button
+                type="button"
+                disabled={!judgement}
+                className="w-full py-3 text-base font-bold rounded bg-blue-600 text-white active:bg-blue-700 disabled:opacity-40"
+                onClick={submit}
+              >
+                Submit &amp; Reveal
+              </button>
+            </div>
+          )}
+          {phase === 'revealed' && (
+            <button
+              type="button"
+              className="w-full py-3 text-base font-bold rounded bg-blue-600 text-white active:bg-blue-700 flex items-center justify-center gap-1 max-w-7xl mx-auto"
+              onClick={next}
+            >
+              Next Setup
+              <ArrowRight size={18} aria-hidden />
+            </button>
+          )}
+        </div>
+      )}
+
       <AIReviewModal trade={reviewTrade} onClose={() => setReviewTrade(null)} />
     </div>
   )

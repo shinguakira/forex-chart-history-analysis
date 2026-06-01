@@ -379,8 +379,13 @@ export function ReplayMode() {
           </div>
         </div>
 
-        {/* Chart */}
-        <div className="rounded-lg border border-gray-800 bg-[#0f1117] h-[520px] overflow-hidden">
+        {/* Chart — fills 60% of the mobile viewport so charts aren't squished
+            behind the sticky action bar; fixed 520px on desktop where there's
+            no thumb-reach concern. */}
+        <div
+          data-no-swipe
+          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[60vh] md:h-[520px] overflow-hidden"
+        >
           {isLoading ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
               Loading chart...
@@ -750,6 +755,63 @@ export function ReplayMode() {
           )}
         </div>
       </div>
+
+      {/* Mobile sticky action bar — primary Buy/Sell or Close/Cancel kept
+          inside thumb-reach. Hidden on md+ where the right panel is already
+          visible alongside the chart. */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-gray-800 bg-[#0f1117]/95 backdrop-blur px-4 py-3 shadow-2xl">
+        {position ? (
+          <div className="flex gap-2 items-center max-w-7xl mx-auto">
+            <div className="flex flex-col text-[10px] mr-1">
+              <span className="text-gray-500">Unrealized</span>
+              <span
+                className={
+                  (liveUnrealized ?? 0) >= 0
+                    ? 'text-green-400 font-bold'
+                    : 'text-red-400 font-bold'
+                }
+              >
+                {(liveUnrealized ?? 0) > 0 ? '+' : ''}
+                {liveUnrealized ?? 0}p
+              </span>
+            </div>
+            <button
+              type="button"
+              className="flex-1 py-3 text-sm font-semibold rounded bg-blue-600 text-white active:bg-blue-700"
+              onClick={manualClose}
+            >
+              Close @ {formatPrice(currentPrice, pair.decimals)}
+            </button>
+            <button
+              type="button"
+              className="px-3 py-3 text-sm rounded bg-gray-800 text-gray-300"
+              onClick={cancelOrder}
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-3 max-w-7xl mx-auto">
+            <button
+              type="button"
+              disabled={!currentCandle}
+              className="flex-1 py-3 text-base font-bold rounded bg-green-600 text-white active:bg-green-700 disabled:opacity-40"
+              onClick={() => placeOrder('long')}
+            >
+              Buy
+            </button>
+            <button
+              type="button"
+              disabled={!currentCandle}
+              className="flex-1 py-3 text-base font-bold rounded bg-red-600 text-white active:bg-red-700 disabled:opacity-40"
+              onClick={() => placeOrder('short')}
+            >
+              Sell
+            </button>
+          </div>
+        )}
+      </div>
+
       <AIReviewModal trade={reviewTrade} onClose={() => setReviewTrade(null)} />
     </div>
   )

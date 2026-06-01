@@ -32,6 +32,8 @@ interface PracticeState {
   position: PendingPosition | null
   indicators: IndicatorEntry[]
   soundMuted: boolean
+  /** Quiz mode auto-advances to the next question after each reveal. */
+  quizAutoContinue: boolean
   pulse: ResultPulse | null
 }
 
@@ -46,6 +48,7 @@ interface PracticeActions {
   clearPosition: () => void
   toggleIndicator: (indicatorId: string) => void
   setSoundMuted: (m: boolean) => void
+  setQuizAutoContinue: (b: boolean) => void
   flashResult: (kind: VerdictKind) => void
   clearPulse: () => void
 }
@@ -61,6 +64,7 @@ export const usePracticeStore = create<PracticeState & PracticeActions>()(
       position: null,
       indicators: cloneIndicators(),
       soundMuted: false,
+      quizAutoContinue: false,
       pulse: null,
 
       setView: (view) => set({ view }),
@@ -83,6 +87,7 @@ export const usePracticeStore = create<PracticeState & PracticeActions>()(
           ),
         })),
       setSoundMuted: (soundMuted) => set({ soundMuted }),
+      setQuizAutoContinue: (quizAutoContinue) => set({ quizAutoContinue }),
       flashResult: (kind) =>
         set((s) => ({ pulse: { kind, id: (s.pulse?.id ?? 0) + 1 } })),
       clearPulse: () => set({ pulse: null }),
@@ -96,6 +101,7 @@ export const usePracticeStore = create<PracticeState & PracticeActions>()(
         blindMode: s.blindMode,
         indicators: s.indicators,
         soundMuted: s.soundMuted,
+        quizAutoContinue: s.quizAutoContinue,
       }),
       merge: (persisted, current) => {
         const p = (persisted ?? {}) as Partial<PracticeState>
