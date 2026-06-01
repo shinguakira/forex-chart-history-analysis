@@ -59,7 +59,7 @@ export function PredictionsPage() {
     cancel,
   } = usePredictions()
 
-  const isConfigured = useIsAIConfigured()
+  const { configured: isConfigured, loading: configLoading } = useIsAIConfigured()
   const isGenerating =
     generateStatus === 'fetching-data' ||
     generateStatus === 'streaming' ||
@@ -135,7 +135,10 @@ export function PredictionsPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-white">AI Predictions</h1>
           <div className="flex items-center gap-3">
-            {isConfigured && <span className="text-xs text-green-400">API configured</span>}
+            {configLoading && <span className="text-xs text-gray-500">⏳ checking…</span>}
+            {!configLoading && isConfigured && (
+              <span className="text-xs text-green-400">API configured</span>
+            )}
             <button
               type="button"
               className="px-3 py-1.5 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700"
@@ -146,8 +149,9 @@ export function PredictionsPage() {
           </div>
         </div>
 
-        {/* Not configured */}
-        {!isConfigured && (
+        {/* Not configured — only after the probe resolved, so the banner
+            doesn't flash on every navigation. */}
+        {!configLoading && !isConfigured && (
           <div className="rounded-lg border border-yellow-600/30 bg-yellow-600/10 p-4">
             <div className="text-sm text-yellow-300 font-medium mb-1">API Key Required</div>
             <div className="text-xs text-yellow-300/70">
