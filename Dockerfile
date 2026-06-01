@@ -97,9 +97,18 @@ WORKDIR /app
 COPY --from=backend  /app/forex-server ./forex-server
 COPY --from=frontend /app/frontend/dist ./dist
 
-# /app/data/forex.db is ephemeral inside Container Apps unless you mount
-# an Azure Files volume. Override DATABASE_URL to point at an external
-# Postgres if you want persistence — the binary handles either scheme.
+# Litestream — continuous SQLite replication to Azure Blob.
+# Pulled from the upstream image instead of curl-into-apt-slim to avoid
+# adding curl/wget to the runtime. Config + entrypoint baked in at build
+# time; the account key is injected at runtime via env var (secretref).
+COPY --from=litestream/litestream:0.3.13 /usr/local/bin/litestream /usr/local/bin/litestream
+COPY litestream.yml /etc/litestream.yml
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# DATABASE_URL points at the local ephemeral path. Litestream restores
+# this file from Blob on entrypoint boot and tails its WAL while the
+# server runs — Rust code never touches Blob directly.
 ENV STATIC_DIR=/app/dist \
     DATABASE_URL="sqlite:///app/data/forex.db?mode=rwc" \
     RUST_LOG="forex_server=info,forex_api=info,tower_http=info" \
@@ -107,4 +116,4 @@ ENV STATIC_DIR=/app/dist \
 
 USER app
 EXPOSE 8080
-CMD ["./forex-server"]
+CMD ["/entrypoint.sh"]

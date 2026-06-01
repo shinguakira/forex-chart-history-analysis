@@ -1,0 +1,20 @@
+# Litestream config — replicates /app/data/forex.db to Azure Blob.
+#
+# The container is restored from this replica on boot (entrypoint.sh
+# runs `litestream restore -if-replica-exists`) and `litestream
+# replicate -exec forex-server` streams WAL frames back continuously
+# while the server runs.
+#
+# Provider is decided by `type:`. Swapping to S3/GCS later is a 4-line
+# diff (no app changes). Auth uses the AZURE_STORAGE_ACCOUNT_KEY env
+# var that Container Apps injects from the `litestream-azure-key`
+# secret (see Container App config). The account key never lives in
+# this file or the image.
+
+dbs:
+  - path: /app/data/forex.db
+    replicas:
+      - type: abs
+        account-name: fxchartdata
+        bucket: forex-db
+        path: db
