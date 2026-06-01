@@ -10,7 +10,7 @@ export function usePracticeSessions() {
 
   const query = useQuery({
     queryKey: LIST_KEY,
-    queryFn: () => rspc.query(['practice.list']),
+    queryFn: () => rspc.query(['practice.list', null]),
   })
 
   const upsert = useMutation({
@@ -24,7 +24,7 @@ export function usePracticeSessions() {
   })
 
   const clear = useMutation({
-    mutationFn: () => rspc.mutation(['practice.clearAll', undefined]),
+    mutationFn: () => rspc.mutation(['practice.clearAll', null]),
     onSuccess: () => qc.invalidateQueries({ queryKey: LIST_KEY }),
   })
 

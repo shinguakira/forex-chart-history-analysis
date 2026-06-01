@@ -4,6 +4,7 @@ import {
   type IChartApi,
   type ISeriesApi,
   type ISeriesMarkersPluginApi,
+  type Time,
   createChart,
   createSeriesMarkers,
 } from 'lightweight-charts'
@@ -32,7 +33,7 @@ export function CandlestickChart({ data, indicators, trades, goToTimestamp, onNa
 
   const chartRef = useRef<IChartApi | null>(null)
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
-  const markersPluginRef = useRef<ISeriesMarkersPluginApi<number> | null>(null)
+  const markersPluginRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null)
 
   // ─── Main chart init ───
   useEffect(() => {

@@ -8,7 +8,7 @@ const KEY = ['trades.list'] as const
 export function useTradeHistory() {
   const q = useQuery({
     queryKey: KEY,
-    queryFn: () => rspc.query(['trades.list']) as Promise<Trade[]>,
+    queryFn: () => rspc.query(['trades.list', null]) as Promise<Trade[]>,
     staleTime: Number.POSITIVE_INFINITY,
   })
   return {

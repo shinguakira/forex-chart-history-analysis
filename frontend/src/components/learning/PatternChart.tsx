@@ -5,6 +5,7 @@ import {
   type IChartApi,
   type ISeriesApi,
   type ISeriesMarkersPluginApi,
+  type Time,
 } from 'lightweight-charts'
 import { useEffect, useRef } from 'react'
 import type { PatternMarker } from '@/config/chart-patterns'
@@ -22,7 +23,7 @@ export function PatternChart({ candles, markers }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
-  const markersPluginRef = useRef<ISeriesMarkersPluginApi<number> | null>(null)
+  const markersPluginRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null)
 
   useEffect(() => {
     if (!containerRef.current) return

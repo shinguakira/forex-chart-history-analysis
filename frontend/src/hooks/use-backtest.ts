@@ -25,7 +25,7 @@ type RunStatus =
 import { rspc } from '@/lib/rspc'
 
 async function loadRuns(): Promise<BacktestRun[]> {
-  return (await rspc.query(['backtests.list'])) as BacktestRun[]
+  return (await rspc.query(['backtests.list', null])) as BacktestRun[]
 }
 
 async function upsertRun(run: BacktestRun): Promise<void> {
@@ -36,9 +36,9 @@ async function deleteRunApi(id: string): Promise<void> {
   await rspc.mutation(['backtests.delete', { id }])
 }
 
-function getModelString(provider: 'claude' | 'ollama', ollamaModel: string): string {
-  if (provider === 'claude') return 'claude-sonnet-4-20250514'
-  return `ollama:${ollamaModel}`
+function getModelString(provider: 'claude' | 'ollama'): string {
+  // Backend decides the actual model — frontend only labels by provider.
+  return provider === 'claude' ? 'claude-sonnet-4-20250514' : 'ollama'
 }
 
 function computeStats(predictions: BacktestPrediction[]): BacktestRunStats {
@@ -114,12 +114,7 @@ export function useBacktest() {
 
   const runBacktest = useCallback(async (config: BacktestConfig) => {
     const store = useAIStore.getState()
-    const provider = createProvider({
-      type: store.provider,
-      apiKey: store.apiKey,
-      ollamaUrl: store.ollamaUrl,
-      ollamaModel: store.ollamaModel,
-    })
+    const provider = createProvider({ type: store.provider })
 
     if (!provider.isConfigured()) {
       setError('API key not configured')
@@ -136,7 +131,7 @@ export function useBacktest() {
     setProgress(null)
 
     const cutoffs = generateCutoffs(config.startTimestamp, config.endTimestamp, config.intervalDays)
-    const modelStr = getModelString(store.provider, store.ollamaModel)
+    const modelStr = getModelString(store.provider)
     const allPredictions: BacktestPrediction[] = []
 
     try {

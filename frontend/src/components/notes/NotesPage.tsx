@@ -14,7 +14,7 @@ export function NotesPage() {
 
   const notesQuery = useQuery({
     queryKey: LIST_KEY,
-    queryFn: () => rspc.query(['notes.list']),
+    queryFn: () => rspc.query(['notes.list', null]),
   })
 
   const upsert = useMutation({

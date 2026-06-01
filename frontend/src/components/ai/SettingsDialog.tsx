@@ -12,7 +12,7 @@ export function SettingsDialog() {
   const qc = useQueryClient()
   const cfg = useQuery({
     queryKey: ['meta.config'],
-    queryFn: () => rspc.query(['meta.config']),
+    queryFn: () => rspc.query(['meta.config', null]),
   })
   const aiConfigured = useQuery({
     queryKey: ['ai.isConfigured'],
