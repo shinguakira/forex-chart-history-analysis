@@ -1,59 +1,55 @@
-use sea_orm::{ConnectOptions, Database, DatabaseConnection, DbErr};
+use sea_orm::{
+    ConnectOptions, ConnectionTrait, Database, DatabaseBackend, DatabaseConnection, DbErr,
+    Statement,
+};
 use sea_orm_migration::MigratorTrait;
 use std::time::Duration;
 
 use crate::migration::Migrator;
 
 pub async fn connect(url: &str) -> Result<DatabaseConnection, DbErr> {
-    let mut opts = ConnectOptions::new(append_sqlite_pragmas(url));
-    let is_sqlite = is_sqlite_url(url);
+    let is_sqlite = url.starts_with("sqlite:");
+    let mut opts = ConnectOptions::new(url);
     opts.acquire_timeout(Duration::from_secs(10))
-        .idle_timeout(Duration::from_secs(60))
         .sqlx_logging(false);
+
     if is_sqlite {
-        // SQLite is single-writer. When the file lives on Azure Files (SMB),
-        // multiple pooled writers cause `database is locked` immediately —
-        // a single connection serializes writes inside the process and we
-        // lean on PRAGMA busy_timeout to ride out any cross-process retries.
-        opts.max_connections(1).min_connections(1);
+        // SQLite is single-writer. When the DB file lives on Azure Files
+        // (SMB), multiple pooled writers hit `database is locked` immediately,
+        // so we serialize writes inside the process with a single connection
+        // and keep it pinned for the lifetime of the server.
+        opts.max_connections(1)
+            .min_connections(1)
+            .max_lifetime(Duration::from_secs(60 * 60 * 24 * 365))
+            .idle_timeout(Duration::from_secs(60 * 60 * 24 * 365));
     } else {
-        opts.max_connections(8).min_connections(1);
+        opts.max_connections(8)
+            .min_connections(1)
+            .idle_timeout(Duration::from_secs(60));
     }
-    Database::connect(opts).await
-}
 
-fn is_sqlite_url(url: &str) -> bool {
-    url.starts_with("sqlite:")
-}
+    let db = Database::connect(opts).await?;
 
-/// Tack SMB-friendly PRAGMAs onto a SQLite URL so the DB works on an
-/// Azure Files mount as well as a local disk. No-op for non-sqlite URLs.
-///
-/// - `journal_mode=DELETE` skips the WAL/.shm shared-memory file — SMB
-///   doesn't implement the mmap semantics WAL relies on, so WAL connects
-///   bail with `database is locked` on first write.
-/// - `synchronous=NORMAL` halves the fsync count vs FULL (each fsync is a
-///   billable SMB flush op), with negligible durability loss for our
-///   personal-use workload.
-/// - `busy_timeout=5000` makes sqlx retry locked tables for 5s instead of
-///   failing immediately on contention.
-fn append_sqlite_pragmas(url: &str) -> String {
-    if !is_sqlite_url(url) {
-        return url.to_string();
-    }
-    const PRAGMAS: &[(&str, &str)] = &[
-        ("journal_mode", "DELETE"),
-        ("synchronous", "NORMAL"),
-        ("busy_timeout", "5000"),
-    ];
-    let mut out = url.to_string();
-    for (k, v) in PRAGMAS {
-        if !out.contains(&format!("{k}=")) {
-            out.push(if out.contains('?') { '&' } else { '?' });
-            out.push_str(&format!("{k}={v}"));
+    if is_sqlite {
+        // SMB-safe PRAGMAs:
+        //   journal_mode=DELETE — WAL relies on mmap .shm, which SMB doesn't
+        //       implement; the first writer otherwise dies with
+        //       `database is locked`. DELETE journal works fine over SMB.
+        //   synchronous=NORMAL — halves billable SMB flush ops vs FULL,
+        //       with negligible durability loss for our workload.
+        //   busy_timeout=5000 — retry locks for 5s on contention instead
+        //       of failing the request.
+        for stmt in [
+            "PRAGMA journal_mode=DELETE",
+            "PRAGMA synchronous=NORMAL",
+            "PRAGMA busy_timeout=5000",
+        ] {
+            db.execute(Statement::from_string(DatabaseBackend::Sqlite, stmt))
+                .await?;
         }
     }
-    out
+
+    Ok(db)
 }
 
 pub async fn migrate(conn: &DatabaseConnection) -> Result<(), DbErr> {
