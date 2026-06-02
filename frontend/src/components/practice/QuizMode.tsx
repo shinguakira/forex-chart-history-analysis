@@ -59,8 +59,16 @@ export function QuizMode() {
   // the user navigates away or toggles the setting off mid-countdown.
   const autoContinueTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const { candles, cursorIndex, isLoading, randomJump, goToTimestamp } = session
+  const { candles, cursorIndex, isLoading, randomJump, goToTimestamp, setCursorIndex } = session
   const { addTrade, trades } = usePracticeSessions()
+
+  // Timestamp of the candle that defined the current question. Captured the
+  // first time phase flips to 'asking' and cleared on next(). While set, any
+  // subsequent change to candles (TF or pair switch mid-quiz) re-derives the
+  // cursor to the candle closest to this anchor — otherwise the cursor index
+  // from the old candles array would be stale and `submit()` would silently
+  // bail on `!askCandle`.
+  const [anchorTime, setAnchorTime] = useState<number | null>(null)
 
   // Switch to asking phase after loading & cursor set
   useEffect(() => {
@@ -68,6 +76,30 @@ export function QuizMode() {
       setPhase('asking')
     }
   }, [cursorIndex, candles.length, phase])
+
+  // Capture the question's anchor as soon as we have a valid askCandle.
+  useEffect(() => {
+    if (phase !== 'asking') return
+    if (anchorTime != null) return
+    const c = cursorIndex != null ? candles[cursorIndex] : null
+    if (c) setAnchorTime(c.time)
+  }, [phase, cursorIndex, candles, anchorTime])
+
+  // Re-anchor the cursor when candles change (TF / pair switch mid-question).
+  useEffect(() => {
+    if (anchorTime == null || candles.length === 0) return
+    if (cursorIndex != null && candles[cursorIndex]?.time === anchorTime) return
+    let best = 0
+    let bestDist = Number.POSITIVE_INFINITY
+    for (let i = 0; i < candles.length; i++) {
+      const d = Math.abs(candles[i].time - anchorTime)
+      if (d < bestDist) {
+        bestDist = d
+        best = i
+      }
+    }
+    if (best !== cursorIndex) setCursorIndex(best)
+  }, [anchorTime, candles, cursorIndex, setCursorIndex])
 
   const askCandle = cursorIndex != null ? candles[cursorIndex] : null
   const revealIdx =
@@ -109,6 +141,7 @@ export function QuizMode() {
       autoContinueTimer.current = null
     }
     setPick(null)
+    setAnchorTime(null)
     setPhase('idle')
     randomJump()
   }
@@ -492,7 +525,8 @@ export function QuizMode() {
             <div className="flex gap-3 max-w-7xl mx-auto">
               <button
                 type="button"
-                className="flex-1 py-3 text-base font-bold rounded bg-green-600 text-white active:bg-green-700 flex items-center justify-center gap-1"
+                disabled={!askCandle || !revealCandle}
+                className="flex-1 py-3 text-base font-bold rounded bg-green-600 text-white active:bg-green-700 disabled:opacity-40 flex items-center justify-center gap-1"
                 onClick={() => submit('up')}
               >
                 <TrendingUp size={18} aria-hidden />
@@ -500,7 +534,8 @@ export function QuizMode() {
               </button>
               <button
                 type="button"
-                className="flex-1 py-3 text-base font-bold rounded bg-red-600 text-white active:bg-red-700 flex items-center justify-center gap-1"
+                disabled={!askCandle || !revealCandle}
+                className="flex-1 py-3 text-base font-bold rounded bg-red-600 text-white active:bg-red-700 disabled:opacity-40 flex items-center justify-center gap-1"
                 onClick={() => submit('down')}
               >
                 <TrendingDown size={18} aria-hidden />

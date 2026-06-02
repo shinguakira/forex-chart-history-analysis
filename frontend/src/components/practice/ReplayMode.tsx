@@ -209,6 +209,21 @@ export function ReplayMode() {
     })
   }
 
+  // Mirror placeOrder's validation so the Buy/Sell buttons reflect whether
+  // a click would actually do anything — otherwise a stale SL/TP from a
+  // different pair silently no-ops the order and the button looks broken.
+  const canPlace = (direction: ReplayDirection): boolean => {
+    if (!currentCandle || cursorIndex == null) return false
+    const sl = Number.parseFloat(slInput)
+    const tp = Number.parseFloat(tpInput)
+    if (!Number.isFinite(sl) || !Number.isFinite(tp)) return false
+    const entry = currentCandle.close
+    if (direction === 'long') return sl < entry && tp > entry
+    return sl > entry && tp < entry
+  }
+  const canPlaceLong = canPlace('long')
+  const canPlaceShort = canPlace('short')
+
   const manualClose = () => {
     if (!position || !currentCandle || cursorIndex == null) return
     const exit = currentCandle.close
@@ -676,7 +691,8 @@ export function ReplayMode() {
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  disabled={!currentCandle}
+                  disabled={!canPlaceLong}
+                  title={canPlaceLong ? '' : 'Set SL below and TP above current price'}
                   className="px-3 py-1.5 text-xs rounded bg-green-600 text-white hover:bg-green-500 disabled:opacity-40"
                   onClick={() => placeOrder('long')}
                 >
@@ -684,7 +700,8 @@ export function ReplayMode() {
                 </button>
                 <button
                   type="button"
-                  disabled={!currentCandle}
+                  disabled={!canPlaceShort}
+                  title={canPlaceShort ? '' : 'Set SL above and TP below current price'}
                   className="px-3 py-1.5 text-xs rounded bg-red-600 text-white hover:bg-red-500 disabled:opacity-40"
                   onClick={() => placeOrder('short')}
                 >
@@ -777,7 +794,8 @@ export function ReplayMode() {
             </div>
             <button
               type="button"
-              className="flex-1 py-3 text-sm font-semibold rounded bg-blue-600 text-white active:bg-blue-700"
+              disabled={!currentCandle}
+              className="flex-1 py-3 text-sm font-semibold rounded bg-blue-600 text-white active:bg-blue-700 disabled:opacity-40"
               onClick={manualClose}
             >
               Close @ {formatPrice(currentPrice, pair.decimals)}
@@ -794,7 +812,7 @@ export function ReplayMode() {
           <div className="flex gap-3 max-w-7xl mx-auto">
             <button
               type="button"
-              disabled={!currentCandle}
+              disabled={!canPlaceLong}
               className="flex-1 py-3 text-base font-bold rounded bg-green-600 text-white active:bg-green-700 disabled:opacity-40"
               onClick={() => placeOrder('long')}
             >
@@ -802,7 +820,7 @@ export function ReplayMode() {
             </button>
             <button
               type="button"
-              disabled={!currentCandle}
+              disabled={!canPlaceShort}
               className="flex-1 py-3 text-base font-bold rounded bg-red-600 text-white active:bg-red-700 disabled:opacity-40"
               onClick={() => placeOrder('short')}
             >

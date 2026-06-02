@@ -65,14 +65,41 @@ export function SetupMode() {
   const [reason, setReason] = useState('')
   const [reviewTrade, setReviewTrade] = useState<PracticeTrade | null>(null)
 
-  const { candles, cursorIndex, isLoading, randomJump, goToTimestamp } = session
+  const { candles, cursorIndex, isLoading, randomJump, goToTimestamp, setCursorIndex } = session
   const { addTrade, trades } = usePracticeSessions()
+
+  // Anchor the cursor to the question's askCandle.time so TF / pair
+  // changes mid-quiz don't strand cursorIndex on a stale candles array
+  // (which silently broke submit()).
+  const [anchorTime, setAnchorTime] = useState<number | null>(null)
 
   useEffect(() => {
     if (cursorIndex != null && candles.length > 0 && phase === 'idle') {
       setPhase('asking')
     }
   }, [cursorIndex, candles.length, phase])
+
+  useEffect(() => {
+    if (phase !== 'asking') return
+    if (anchorTime != null) return
+    const c = cursorIndex != null ? candles[cursorIndex] : null
+    if (c) setAnchorTime(c.time)
+  }, [phase, cursorIndex, candles, anchorTime])
+
+  useEffect(() => {
+    if (anchorTime == null || candles.length === 0) return
+    if (cursorIndex != null && candles[cursorIndex]?.time === anchorTime) return
+    let best = 0
+    let bestDist = Number.POSITIVE_INFINITY
+    for (let i = 0; i < candles.length; i++) {
+      const d = Math.abs(candles[i].time - anchorTime)
+      if (d < bestDist) {
+        bestDist = d
+        best = i
+      }
+    }
+    if (best !== cursorIndex) setCursorIndex(best)
+  }, [anchorTime, candles, cursorIndex, setCursorIndex])
 
   const askCandle = cursorIndex != null ? candles[cursorIndex] : null
   const revealIdx =
@@ -107,6 +134,7 @@ export function SetupMode() {
     setJudgement(null)
     setConfidence(3)
     setReason('')
+    setAnchorTime(null)
     setPhase('idle')
     randomJump()
   }
@@ -557,7 +585,7 @@ export function SetupMode() {
               </div>
               <button
                 type="button"
-                disabled={!judgement}
+                disabled={!judgement || !askCandle || !revealCandle}
                 className="w-full py-3 text-base font-bold rounded bg-blue-600 text-white active:bg-blue-700 disabled:opacity-40"
                 onClick={submit}
               >
