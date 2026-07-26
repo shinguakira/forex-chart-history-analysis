@@ -40,6 +40,9 @@ export interface SetupDetail {
 
 export interface TradeReviewDetail {
   judgement: 'long' | 'short'
+  /** Price movement from openPrice to closePrice in pips. Positive = up. */
+  outcomePips: number
+  /** What was actually done on this trade — supplementary context, not used for scoring. */
   actualDirection: 'bull' | 'bear'
   actualPl: number
   tradeRef: string

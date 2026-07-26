@@ -8,6 +8,7 @@ import { usePracticeSessions } from '@/hooks/use-practice-sessions'
 import { useChartData } from '@/hooks/use-chart-data'
 import { useTradeHistory } from '@/hooks/use-trade-history'
 import { formatDateJST } from '@/lib/date-utils'
+import { pipsBetween } from '@/lib/practice'
 import { usePracticeStore } from '@/store/practice-store'
 import type { Trade } from '@/types/trade'
 import type { TimeFrame } from '@/types/candle'
@@ -57,7 +58,7 @@ export function TradeReviewMode() {
   const pendingRef = useRef<string | null>(null)
 
   const period = PERIOD_FOR_PRACTICE_TF[timeframe]
-  const { candles, isLoading } = useChartData(pair, timeframe, period, goToTimestamp)
+  const { candles, isLoading } = useChartData(pair, timeframe, period, goToTimestamp, 'yahoo')
   const { addTrade, trades: practiceTrades } = usePracticeSessions()
 
   // Position cursor at the trade's openDate once candles load
@@ -93,14 +94,17 @@ export function TradeReviewMode() {
 
   const submit = useCallback(() => {
     if (!judgement || !activeTrade || cursorIndex == null) return
+
+    // Correct = did price move in the predicted direction (openPrice → closePrice)?
+    const outcomePips = pipsBetween(activeTrade.openPrice, activeTrade.closePrice, pair.decimals)
     const correct =
-      (judgement === 'long' && activeTrade.direction === 'bull') ||
-      (judgement === 'short' && activeTrade.direction === 'bear')
+      (judgement === 'long' && outcomePips > 0) ||
+      (judgement === 'short' && outcomePips < 0)
     setIsCorrect(correct)
     flashResult(correct ? 'correct' : 'wrong')
     setPhase('revealed')
 
-    // Advance cursor toward closeDate so the outcome is visible in the chart
+    // Advance cursor to closeDate so the price path is visible in the chart
     const closeTs = Math.floor(new Date(activeTrade.closeDate).getTime() / 1000)
     let bestClose = cursorIndex
     let bestDist = Number.POSITIVE_INFINITY
@@ -122,6 +126,7 @@ export function TradeReviewMode() {
       createdAt: Date.now(),
       tradeReview: {
         judgement,
+        outcomePips,
         actualDirection: activeTrade.direction as 'bull' | 'bear',
         actualPl: activeTrade.pl,
         tradeRef: activeTrade.ref,
@@ -329,8 +334,9 @@ export function TradeReviewMode() {
             </div>
           )}
 
-          {phase === 'revealed' && judgement && activeTrade && actualDir && (
+          {phase === 'revealed' && judgement && activeTrade && (
             <div className="space-y-3">
+              {/* Primary verdict: did price move as predicted? */}
               <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-sm text-gray-300">Your call:</span>
                 <span
@@ -342,15 +348,17 @@ export function TradeReviewMode() {
                 >
                   {judgement.toUpperCase()}
                 </span>
-                <span className="text-sm text-gray-300 ml-2">Actual:</span>
+                <span className="text-sm text-gray-300 ml-2">Move:</span>
                 <span
-                  className={`px-2 py-0.5 text-xs font-bold rounded ${
-                    actualDir === 'long'
-                      ? 'bg-green-900/50 text-green-400'
-                      : 'bg-red-900/50 text-red-400'
+                  className={`text-sm font-bold ${
+                    activeTrade.closePrice > activeTrade.openPrice
+                      ? 'text-green-400'
+                      : activeTrade.closePrice < activeTrade.openPrice
+                        ? 'text-red-400'
+                        : 'text-gray-400'
                   }`}
                 >
-                  {actualDir.toUpperCase()}
+                  {activeTrade.closePrice > activeTrade.openPrice ? '▲ UP' : activeTrade.closePrice < activeTrade.openPrice ? '▼ DOWN' : '—'}
                 </span>
                 <span
                   className={`ml-auto flex items-center gap-1 px-2 py-1 text-xs font-bold rounded ${
@@ -371,6 +379,7 @@ export function TradeReviewMode() {
                 </span>
               </div>
 
+              {/* Price info */}
               <div className="grid grid-cols-3 gap-2 text-center text-[11px]">
                 <div className="rounded bg-gray-800 px-2 py-1.5">
                   <div className="text-gray-500">Entry</div>
@@ -385,22 +394,42 @@ export function TradeReviewMode() {
                   </div>
                 </div>
                 <div className="rounded bg-gray-800 px-2 py-1.5">
-                  <div className="text-gray-500">P&L</div>
+                  <div className="text-gray-500">Pips</div>
                   <div
-                    className={`font-medium ${activeTrade.pl >= 0 ? 'text-green-400' : 'text-red-400'}`}
+                    className={`font-medium ${
+                      activeTrade.closePrice >= activeTrade.openPrice
+                        ? 'text-green-400'
+                        : 'text-red-400'
+                    }`}
                   >
-                    {activeTrade.pl >= 0 ? '+' : ''}
-                    {activeTrade.pl.toFixed(0)}¥
+                    {pipsBetween(activeTrade.openPrice, activeTrade.closePrice, pair.decimals) > 0 ? '+' : ''}
+                    {pipsBetween(activeTrade.openPrice, activeTrade.closePrice, pair.decimals)}
                   </div>
                 </div>
               </div>
 
-              {!blindMode && (
-                <div className="text-[10px] text-gray-500">
-                  {formatDateJST(new Date(activeTrade.openDate).getTime())} →{' '}
-                  {formatDateJST(new Date(activeTrade.closeDate).getTime())}
-                </div>
-              )}
+              {/* Supplementary: what you actually did on this trade */}
+              <div className="flex items-center gap-2 text-[11px] text-gray-500 border-t border-gray-800 pt-2">
+                <span>あなたの実トレード:</span>
+                <span
+                  className={`px-1 py-0.5 text-[10px] font-bold uppercase rounded ${
+                    actualDir === 'long'
+                      ? 'bg-green-900/50 text-green-400'
+                      : 'bg-red-900/50 text-red-400'
+                  }`}
+                >
+                  {actualDir === 'long' ? 'Long' : 'Short'}
+                </span>
+                <span className={activeTrade.pl >= 0 ? 'text-green-400' : 'text-red-400'}>
+                  {activeTrade.pl >= 0 ? '+' : ''}{activeTrade.pl.toFixed(0)}¥
+                </span>
+                {!blindMode && (
+                  <span className="ml-auto">
+                    {formatDateJST(new Date(activeTrade.openDate).getTime())} →{' '}
+                    {formatDateJST(new Date(activeTrade.closeDate).getTime())}
+                  </span>
+                )}
+              </div>
 
               <button
                 type="button"
@@ -469,14 +498,11 @@ export function TradeReviewMode() {
                           {r.judgement === 'long' ? 'L' : 'S'}
                         </span>
                         <span className="text-gray-400">{p?.displayName ?? t.pairId}</span>
-                        <span className="text-gray-600">
-                          → {r.actualDirection === 'bull' ? 'L' : 'S'}
-                        </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className={r.actualPl >= 0 ? 'text-green-400' : 'text-red-400'}>
-                          {r.actualPl >= 0 ? '+' : ''}
-                          {r.actualPl.toFixed(0)}¥
+                        <span className={r.outcomePips >= 0 ? 'text-green-400' : 'text-red-400'}>
+                          {r.outcomePips > 0 ? '+' : ''}
+                          {r.outcomePips}p
                         </span>
                         <span
                           aria-label={r.correct ? 'correct' : 'wrong'}

@@ -24,7 +24,11 @@ function tradeVerdict(t: PracticeTrade): Verdict {
     if (t.replay.pips < 0) return 'wrong'
     return 'neutral'
   }
-  if (t.tradeReview) return t.tradeReview.correct ? 'correct' : 'wrong'
+  if (t.tradeReview) {
+    if (t.tradeReview.outcomePips > 0) return 'correct'
+    if (t.tradeReview.outcomePips < 0) return 'wrong'
+    return 'neutral'
+  }
   return 'neutral'
 }
 

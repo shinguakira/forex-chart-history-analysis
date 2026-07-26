@@ -104,6 +104,9 @@ pub enum TradeReviewJudgement {
 #[serde(rename_all = "camelCase")]
 pub struct TradeReviewDetail {
     pub judgement: TradeReviewJudgement,
+    /// Price movement from openPrice to closePrice in pips (positive = up).
+    pub outcome_pips: f64,
+    /// What you actually did on this trade (supplementary context).
     pub actual_direction: String,
     pub actual_pl: f64,
     pub trade_ref: String,

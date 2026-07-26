@@ -14,8 +14,9 @@ export function useChartData(
   timeframe: TimeFrame,
   period: Period,
   goToTimestamp: number | null,
+  source?: 'yahoo' | 'db',
 ): ChartDataResult {
-  const { data, isLoading } = useHistoricalData(pair, timeframe, period, goToTimestamp)
+  const { data, isLoading } = useHistoricalData(pair, timeframe, period, goToTimestamp, source)
   return {
     candles: data?.candles ?? [],
     regularMarketPrice: data?.regularMarketPrice ?? 0,
