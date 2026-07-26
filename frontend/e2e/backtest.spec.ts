@@ -76,16 +76,16 @@ test.describe('Backtest page (/backtest)', () => {
     const hasRuns = await page.locator('text=/\\d+ total/').first().isVisible().catch(() => false)
     test.skip(!hasRuns, 'No seeded runs available')
     // Click the first run summary to expand
-    const firstRun = page.locator('text=/▶/').first()
-    if (await firstRun.isVisible().catch(() => false)) {
-      await firstRun.click()
+    const expandBtn = page.getByRole('button', { name: 'Expand run' }).first()
+    if (await expandBtn.isVisible().catch(() => false)) {
+      await expandBtn.click()
       // After expand, the inner predictions table renders cards (Entry / SL / TP)
       // Wait for at least one prediction card to appear
       await expect(
         page.locator('div.rounded-lg.border.border-gray-700').first(),
       ).toBeVisible({ timeout: 5_000 })
       // Collapse again
-      await page.locator('text=/▼/').first().click()
+      await page.getByRole('button', { name: 'Collapse run' }).first().click()
     }
   })
 

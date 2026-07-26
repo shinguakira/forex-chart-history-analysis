@@ -1,7 +1,8 @@
+import { X } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
 import { CandlestickChart } from '@/components/chart/CandlestickChart'
 import { GoToDateInput } from '@/components/chart/GoToDateInput'
-import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
+import { WindowIndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { LatestButton } from '@/components/chart/LatestButton'
 import { PeriodSelector } from '@/components/chart/PeriodSelector'
 import { TimeframeSelector } from '@/components/chart/TimeframeSelector'
@@ -11,6 +12,7 @@ import { useChartData } from '@/hooks/use-chart-data'
 import { useTradeHistory } from '@/hooks/use-trade-history'
 import { useDrag } from '@/hooks/use-drag'
 import { useResize } from '@/hooks/use-resize'
+import { useIsMobile } from '@/hooks/use-media-query'
 import { formatPrice, formatPriceChange } from '@/lib/utils'
 import { useWindowStore } from '@/store/window-store'
 
@@ -43,6 +45,8 @@ export function ChartWindow({ windowId }: Props) {
     [showTrades, pair.id, TRADE_HISTORY],
   )
 
+  const isMobile = useIsMobile()
+
   const { onPointerDown: onDragDown } = useDrag({
     onDrag: (x, y) => updatePosition(windowId, x, y),
     onDragStart: () => focusWindow(windowId),
@@ -62,23 +66,28 @@ export function ChartWindow({ windowId }: Props) {
       ? formatPriceChange(regularMarketPrice, previousClose)
       : null
 
+  // Mobile: ignore stored geometry, fill the canvas, drop drag/resize handles.
+  // The window-canvas is a single-column stack — z-index from the store still
+  // controls which one is on top.
+  const positionStyle = isMobile
+    ? { inset: 0, zIndex: win.zIndex }
+    : { left: win.x, top: win.y, width: win.width, height: win.height, zIndex: win.zIndex }
+
   return (
     <div
       data-window
-      className="absolute flex flex-col bg-gray-900 border border-gray-700 rounded-lg shadow-2xl overflow-hidden select-none"
-      style={{
-        left: win.x,
-        top: win.y,
-        width: win.width,
-        height: win.height,
-        zIndex: win.zIndex,
-      }}
+      className={`flex flex-col bg-gray-900 ${
+        isMobile ? 'absolute' : 'absolute border border-gray-700 rounded-lg'
+      } shadow-2xl overflow-hidden select-none`}
+      style={positionStyle}
       onMouseDown={() => focusWindow(windowId)}
     >
       {/* Title bar */}
       <div
-        className="flex items-center justify-between px-3 py-1.5 bg-gray-800 border-b border-gray-700 cursor-grab active:cursor-grabbing"
-        onPointerDown={onDragDown}
+        className={`flex items-center justify-between px-3 py-1.5 bg-gray-800 border-b border-gray-700 ${
+          isMobile ? '' : 'cursor-grab active:cursor-grabbing'
+        }`}
+        onPointerDown={isMobile ? undefined : onDragDown}
       >
         <div className="flex items-center gap-3 min-w-0">
           <span className="text-sm font-bold text-white truncate">{pair.displayName}</span>
@@ -98,21 +107,14 @@ export function ChartWindow({ windowId }: Props) {
         <div className="flex items-center gap-1">
           <button
             type="button"
+            aria-label="Close chart window"
             onClick={(e) => {
               e.stopPropagation()
               closeWindow(windowId)
             }}
             className="p-1 rounded hover:bg-red-600/80 text-gray-400 hover:text-white transition-colors"
           >
-            <svg
-              className="w-3.5 h-3.5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
+            <X size={14} aria-hidden />
           </button>
         </div>
       </div>
@@ -121,7 +123,7 @@ export function ChartWindow({ windowId }: Props) {
       <div className="flex items-center justify-between border-b border-gray-700">
         <TimeframeSelector windowId={windowId} />
         <div className="pr-2">
-          <IndicatorPanel windowId={windowId} />
+          <WindowIndicatorPanel windowId={windowId} />
         </div>
       </div>
 
@@ -152,15 +154,17 @@ export function ChartWindow({ windowId }: Props) {
         )}
       </div>
 
-      {/* Resize handle */}
-      <div
-        className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
-        onPointerDown={onResizeDown}
-      >
-        <svg className="w-4 h-4 text-gray-600" viewBox="0 0 16 16" fill="currentColor">
-          <path d="M14 14H12V12H14V14ZM14 10H12V8H14V10ZM10 14H8V12H10V14Z" />
-        </svg>
-      </div>
+      {/* Resize handle — desktop only */}
+      {!isMobile && (
+        <div
+          className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
+          onPointerDown={onResizeDown}
+        >
+          <svg className="w-4 h-4 text-gray-600" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M14 14H12V12H14V14ZM14 10H12V8H14V10ZM10 14H8V12H10V14Z" />
+          </svg>
+        </div>
+      )}
     </div>
   )
 }

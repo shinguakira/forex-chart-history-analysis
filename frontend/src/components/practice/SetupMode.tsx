@@ -1,4 +1,15 @@
+import {
+  ArrowRight,
+  Bot,
+  Check,
+  Dices,
+  Minus,
+  TrendingDown,
+  TrendingUp,
+  X,
+} from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { TIMEFRAMES } from '@/config/constants'
 import { getPairById, PAIRS } from '@/config/pairs'
 import {
@@ -8,6 +19,7 @@ import {
 } from '@/hooks/use-practice-session'
 import { usePracticeSessions } from '@/hooks/use-practice-sessions'
 import { formatDateJST } from '@/lib/date-utils'
+import { judgementCorrect, pipsBetween, type SetupJudgement } from '@/lib/practice'
 import { usePracticeStore } from '@/store/practice-store'
 import type { TimeFrame } from '@/types/candle'
 import type { PracticeTrade } from '@/types/practice'
@@ -23,18 +35,7 @@ const SCENARIOS: Array<{ id: ScenarioFilter; label: string }> = [
 
 const BARS_AHEAD_OPTIONS = [10, 20, 50, 100]
 
-type Judgement = 'long' | 'short' | 'no-trade'
-
-function pipMultiplier(decimals: number): number {
-  return decimals === 3 ? 100 : 10000
-}
-
-function judgementCorrect(j: Judgement, pips: number): boolean {
-  if (j === 'long') return pips > 0
-  if (j === 'short') return pips < 0
-  // no-trade: "correct" if move was small
-  return Math.abs(pips) < 20
-}
+type Judgement = SetupJudgement
 
 export function SetupMode() {
   const pairId = usePracticeStore((s) => s.pairId)
@@ -43,6 +44,9 @@ export function SetupMode() {
   const setPairId = usePracticeStore((s) => s.setPairId)
   const setTimeframe = usePracticeStore((s) => s.setTimeframe)
   const setBlindMode = usePracticeStore((s) => s.setBlindMode)
+  const indicators = usePracticeStore((s) => s.indicators)
+  const toggleIndicator = usePracticeStore((s) => s.toggleIndicator)
+  const flashResult = usePracticeStore((s) => s.flashResult)
 
   const pair = getPairById(pairId) ?? PAIRS[0]
   const [scenario, setScenario] = useState<ScenarioFilter>('random')
@@ -61,14 +65,41 @@ export function SetupMode() {
   const [reason, setReason] = useState('')
   const [reviewTrade, setReviewTrade] = useState<PracticeTrade | null>(null)
 
-  const { candles, cursorIndex, isLoading, randomJump, goToTimestamp } = session
+  const { candles, cursorIndex, isLoading, randomJump, goToTimestamp, setCursorIndex } = session
   const { addTrade, trades } = usePracticeSessions()
+
+  // Anchor the cursor to the question's askCandle.time so TF / pair
+  // changes mid-quiz don't strand cursorIndex on a stale candles array
+  // (which silently broke submit()).
+  const [anchorTime, setAnchorTime] = useState<number | null>(null)
 
   useEffect(() => {
     if (cursorIndex != null && candles.length > 0 && phase === 'idle') {
       setPhase('asking')
     }
   }, [cursorIndex, candles.length, phase])
+
+  useEffect(() => {
+    if (phase !== 'asking') return
+    if (anchorTime != null) return
+    const c = cursorIndex != null ? candles[cursorIndex] : null
+    if (c) setAnchorTime(c.time)
+  }, [phase, cursorIndex, candles, anchorTime])
+
+  useEffect(() => {
+    if (anchorTime == null || candles.length === 0) return
+    if (cursorIndex != null && candles[cursorIndex]?.time === anchorTime) return
+    let best = 0
+    let bestDist = Number.POSITIVE_INFINITY
+    for (let i = 0; i < candles.length; i++) {
+      const d = Math.abs(candles[i].time - anchorTime)
+      if (d < bestDist) {
+        bestDist = d
+        best = i
+      }
+    }
+    if (best !== cursorIndex) setCursorIndex(best)
+  }, [anchorTime, candles, cursorIndex, setCursorIndex])
 
   const askCandle = cursorIndex != null ? candles[cursorIndex] : null
   const revealIdx =
@@ -78,9 +109,9 @@ export function SetupMode() {
   const submit = () => {
     if (!judgement || !askCandle || !revealCandle || cursorIndex == null || revealIdx == null)
       return
-    const movePips =
-      Math.round((revealCandle.close - askCandle.close) * pipMultiplier(pair.decimals) * 10) / 10
+    const movePips = pipsBetween(askCandle.close, revealCandle.close, pair.decimals)
     setPhase('revealed')
+    flashResult(judgementCorrect(judgement, movePips) ? 'correct' : 'wrong')
     const trade: PracticeTrade = {
       id: crypto.randomUUID(),
       mode: 'setup',
@@ -103,6 +134,7 @@ export function SetupMode() {
     setJudgement(null)
     setConfidence(3)
     setReason('')
+    setAnchorTime(null)
     setPhase('idle')
     randomJump()
   }
@@ -147,9 +179,7 @@ export function SetupMode() {
   }, [setupTrades])
 
   const movePips =
-    askCandle && revealCandle
-      ? Math.round((revealCandle.close - askCandle.close) * pipMultiplier(pair.decimals) * 10) / 10
-      : 0
+    askCandle && revealCandle ? pipsBetween(askCandle.close, revealCandle.close, pair.decimals) : 0
   const lastCorrect = judgement ? judgementCorrect(judgement, movePips) : false
 
   return (
@@ -202,7 +232,7 @@ export function SetupMode() {
           </select>
           <button
             type="button"
-            className="px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
+            className="flex items-center gap-1 px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
             onClick={() => {
               setPhase('idle')
               setJudgement(null)
@@ -210,7 +240,8 @@ export function SetupMode() {
               randomJump()
             }}
           >
-            🎲 New
+            <Dices size={14} aria-hidden />
+            New
           </button>
           <label className="flex items-center gap-1 text-[11px] text-gray-400 cursor-pointer">
             <input
@@ -220,9 +251,15 @@ export function SetupMode() {
             />
             Blind
           </label>
+          <div className="ml-auto">
+            <IndicatorPanel indicators={indicators} onToggle={toggleIndicator} />
+          </div>
         </div>
 
-        <div className="rounded-lg border border-gray-800 bg-[#0f1117] h-[480px] overflow-hidden">
+        <div
+          data-no-swipe
+          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[60vh] md:h-[480px] overflow-hidden"
+        >
           {isLoading ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
               Loading chart...
@@ -232,7 +269,7 @@ export function SetupMode() {
               <div>No data for that timestamp on this timeframe.</div>
               <button
                 type="button"
-                className="px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
+                className="flex items-center gap-1 px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
                 onClick={() => {
                   setPhase('idle')
                   setJudgement(null)
@@ -240,12 +277,13 @@ export function SetupMode() {
                   randomJump()
                 }}
               >
-                🎲 Try Again
+                <Dices size={14} aria-hidden />
+                Try Again
               </button>
             </div>
           ) : candles.length === 0 ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
-              Press 🎲 New to start
+              Press New to start
             </div>
           ) : (
             <PracticeChart
@@ -254,6 +292,7 @@ export function SetupMode() {
               markers={markers}
               blindMode={blindMode}
               decimals={pair.decimals}
+              indicators={indicators}
             />
           )}
         </div>
@@ -272,24 +311,29 @@ export function SetupMode() {
                 </div>
               )}
               <div className="grid grid-cols-3 gap-2">
-                {(['long', 'short', 'no-trade'] as Judgement[]).map((j) => (
-                  <button
-                    key={j}
-                    type="button"
-                    className={`px-3 py-2 text-xs rounded font-medium ${
-                      judgement === j
-                        ? j === 'long'
-                          ? 'bg-green-600 text-white'
-                          : j === 'short'
-                            ? 'bg-red-600 text-white'
-                            : 'bg-gray-600 text-white'
-                        : 'bg-gray-800 text-gray-400 hover:text-gray-200'
-                    }`}
-                    onClick={() => setJudgement(j)}
-                  >
-                    {j === 'long' ? '▲ Long' : j === 'short' ? '▼ Short' : '— No Trade'}
-                  </button>
-                ))}
+                {(['long', 'short', 'no-trade'] as Judgement[]).map((j) => {
+                  const Icon = j === 'long' ? TrendingUp : j === 'short' ? TrendingDown : Minus
+                  const label = j === 'long' ? 'Long' : j === 'short' ? 'Short' : 'No Trade'
+                  return (
+                    <button
+                      key={j}
+                      type="button"
+                      className={`flex items-center justify-center gap-1 px-3 py-2 text-xs rounded font-medium ${
+                        judgement === j
+                          ? j === 'long'
+                            ? 'bg-green-600 text-white'
+                            : j === 'short'
+                              ? 'bg-red-600 text-white'
+                              : 'bg-gray-600 text-white'
+                          : 'bg-gray-800 text-gray-400 hover:text-gray-200'
+                      }`}
+                      onClick={() => setJudgement(j)}
+                    >
+                      <Icon size={14} aria-hidden />
+                      {label}
+                    </button>
+                  )
+                })}
               </div>
               <div className="space-y-1">
                 <div className="flex items-center justify-between text-[11px]">
@@ -358,11 +402,21 @@ export function SetupMode() {
                   {movePips} pips
                 </span>
                 <span
-                  className={`ml-auto px-2 py-1 text-xs font-bold rounded ${
+                  className={`ml-auto flex items-center gap-1 px-2 py-1 text-xs font-bold rounded ${
                     lastCorrect ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
                   }`}
                 >
-                  {lastCorrect ? '✓ Right' : '✗ Wrong'}
+                  {lastCorrect ? (
+                    <>
+                      <Check size={12} aria-hidden />
+                      Right
+                    </>
+                  ) : (
+                    <>
+                      <X size={12} aria-hidden />
+                      Wrong
+                    </>
+                  )}
                 </span>
               </div>
               {reason && (
@@ -372,15 +426,16 @@ export function SetupMode() {
               )}
               <button
                 type="button"
-                className="w-full px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500"
+                className="flex w-full items-center justify-center gap-1 px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500"
                 onClick={next}
               >
-                Next Setup →
+                Next Setup
+                <ArrowRight size={14} aria-hidden />
               </button>
             </div>
           )}
           {phase === 'idle' && (
-            <div className="text-xs text-gray-500 text-center py-2">Click 🎲 New to start.</div>
+            <div className="text-xs text-gray-500 text-center py-2">Click New to start.</div>
           )}
         </div>
       </div>
@@ -465,16 +520,24 @@ export function SetupMode() {
                           {s.outcomePips > 0 ? '+' : ''}
                           {s.outcomePips}p
                         </span>
-                        <span className={correct ? 'text-green-400' : 'text-red-400'}>
-                          {correct ? '✓' : '✗'}
+                        <span
+                          aria-label={correct ? 'correct' : 'wrong'}
+                          className={correct ? 'text-green-400' : 'text-red-400'}
+                        >
+                          {correct ? (
+                            <Check size={12} aria-hidden />
+                          ) : (
+                            <X size={12} aria-hidden />
+                          )}
                         </span>
                         <button
                           type="button"
+                          aria-label="AI review"
                           className="text-gray-600 hover:text-blue-400"
                           title="AI review"
                           onClick={() => setReviewTrade(t)}
                         >
-                          🤖
+                          <Bot size={12} aria-hidden />
                         </button>
                       </div>
                     </div>
@@ -486,6 +549,63 @@ export function SetupMode() {
           )}
         </div>
       </div>
+      {/* Mobile sticky action bar — Long/Short/No-trade chips during asking,
+          Submit once a judgement is picked, Next after reveal. Confidence
+          and reason inputs stay in the form above; sticky bar only owns
+          the primary CTA so it doesn't dominate. */}
+      {phase !== 'idle' && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-gray-800 bg-[#0f1117]/95 backdrop-blur px-4 py-3 shadow-2xl">
+          {phase === 'asking' && (
+            <div className="flex flex-col gap-2 max-w-7xl mx-auto">
+              <div className="grid grid-cols-3 gap-2">
+                {(['long', 'short', 'no-trade'] as Judgement[]).map((j) => {
+                  const Icon = j === 'long' ? TrendingUp : j === 'short' ? TrendingDown : Minus
+                  const label = j === 'long' ? 'Long' : j === 'short' ? 'Short' : 'No Trade'
+                  const active = judgement === j
+                  return (
+                    <button
+                      key={j}
+                      type="button"
+                      className={`flex items-center justify-center gap-1 py-2 text-sm font-semibold rounded ${
+                        active
+                          ? j === 'long'
+                            ? 'bg-green-600 text-white'
+                            : j === 'short'
+                              ? 'bg-red-600 text-white'
+                              : 'bg-gray-600 text-white'
+                          : 'bg-gray-800 text-gray-300 active:bg-gray-700'
+                      }`}
+                      onClick={() => setJudgement(j)}
+                    >
+                      <Icon size={14} aria-hidden />
+                      {label}
+                    </button>
+                  )
+                })}
+              </div>
+              <button
+                type="button"
+                disabled={!judgement || !askCandle || !revealCandle}
+                className="w-full py-3 text-base font-bold rounded bg-blue-600 text-white active:bg-blue-700 disabled:opacity-40"
+                onClick={submit}
+              >
+                Submit &amp; Reveal
+              </button>
+            </div>
+          )}
+          {phase === 'revealed' && (
+            <button
+              type="button"
+              className="w-full py-3 text-base font-bold rounded bg-blue-600 text-white active:bg-blue-700 flex items-center justify-center gap-1 max-w-7xl mx-auto"
+              onClick={next}
+            >
+              Next Setup
+              <ArrowRight size={18} aria-hidden />
+            </button>
+          )}
+        </div>
+      )}
+
       <AIReviewModal trade={reviewTrade} onClose={() => setReviewTrade(null)} />
     </div>
   )

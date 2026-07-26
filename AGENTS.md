@@ -5,9 +5,15 @@
 Forex chart history analysis app. Two deliverables share a single
 React frontend:
 
-- **Web**: Axum + Postgres backend (`crates/server`).
-- **Tauri desktop**: same backend mounted via Tauri IPC, SQLite local
-  store (`crates/tauri-app`).
+- **Web**: Axum backend (`crates/server`). Postgres by default, SQLite
+  via the `sqlite` feature.
+- **Tauri desktop**: same backend mounted via Tauri IPC
+  (`crates/tauri-app`). SQLite by default (per-user AppData file),
+  Postgres via the `postgres` feature.
+
+Both deliverables share the same `forex-db` layer and pick the driver
+at runtime from `DATABASE_URL`; the cargo feature controls only which
+sea-orm/sqlx drivers are linked into the binary.
 
 ## Stack
 
@@ -98,11 +104,32 @@ DATABASE_URL=sqlite://./dev.db?mode=rwc \
 cargo run -p forex-server --bin export-bindings \
   --features sqlite --no-default-features
 
-# Tauri desktop dev:
+# Tauri desktop dev (default: SQLite at <AppData>/forex.db):
 cargo tauri dev   # from crates/tauri-app
+
+# Tauri pointed at Postgres instead — set DATABASE_URL and either
+# build with both features (single binary that handles either URL)
+# or with postgres-only:
+DATABASE_URL=postgres://forex:forex@localhost:5432/forex \
+  cargo tauri dev --features postgres
+# (or --no-default-features --features postgres for a pg-only build)
 
 # Import legacy data/*.json into the DB (idempotent):
 cargo run -p forex-migrate -- \
   --db-url "sqlite://./dev.db?mode=rwc" \
   --data-dir frontend/data
 ```
+
+## DB feature matrix
+
+| Crate         | Default feature | Other feature | Both at once |
+| ------------- | --------------- | ------------- | ------------ |
+| `forex-db`    | `sqlite`        | `postgres`    | yes          |
+| `forex-server`| `postgres`      | `sqlite`      | yes          |
+| `forex-tauri` | `sqlite`        | `postgres`    | yes          |
+
+Both `forex-server` and `forex-tauri` honour `DATABASE_URL` and pick a
+sensible default when it's unset (postgres connection string for the
+server, AppData SQLite file for tauri). Building with both features
+ships a single binary that can connect to either; sea-orm dispatches
+on the URL scheme.

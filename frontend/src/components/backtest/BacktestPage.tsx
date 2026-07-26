@@ -1,5 +1,6 @@
-import { useIsAIConfigured } from '@/hooks/use-is-ai-configured'
+import { ChevronDown, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
+import { useIsAIConfigured } from '@/hooks/use-is-ai-configured'
 import { getPairById, PAIRS } from '@/config/pairs'
 import type { BacktestRun } from '@/generated/bindings'
 import { useBacktest } from '@/hooks/use-backtest'
@@ -56,7 +57,7 @@ export function BacktestPage() {
     cancel,
   } = useBacktest()
 
-  const isConfigured = useIsAIConfigured()
+  const { configured: isConfigured, loading: configLoading } = useIsAIConfigured()
   const isRunning =
     runStatus === 'fetching-data' ||
     runStatus === 'streaming' ||
@@ -126,7 +127,10 @@ export function BacktestPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-white">Backtest</h1>
           <div className="flex items-center gap-3">
-            {isConfigured && <span className="text-xs text-green-400">API configured</span>}
+            {configLoading && <span className="text-xs text-gray-500">⏳ checking…</span>}
+            {!configLoading && isConfigured && (
+              <span className="text-xs text-green-400">API configured</span>
+            )}
             <button
               type="button"
               className="px-3 py-1.5 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700"
@@ -137,8 +141,8 @@ export function BacktestPage() {
           </div>
         </div>
 
-        {/* Not configured */}
-        {!isConfigured && (
+        {/* Not configured — only after probe resolved */}
+        {!configLoading && !isConfigured && (
           <div className="rounded-lg border border-yellow-600/30 bg-yellow-600/10 p-4">
             <div className="text-sm text-yellow-300 font-medium mb-1">API Key Required</div>
             <div className="text-xs text-yellow-300/70">
@@ -391,11 +395,19 @@ export function BacktestPage() {
                   <div className="p-4 flex items-center justify-between">
                     <button
                       type="button"
+                      aria-expanded={isExpanded}
+                      aria-label={isExpanded ? 'Collapse run' : 'Expand run'}
                       className="flex-1 text-left"
                       onClick={() => toggleExpanded(run.id)}
                     >
                       <div className="flex items-center gap-3 text-xs">
-                        <span className="text-gray-500">{isExpanded ? '\u25BC' : '\u25B6'}</span>
+                        <span className="text-gray-500 flex items-center">
+                          {isExpanded ? (
+                            <ChevronDown size={12} aria-hidden />
+                          ) : (
+                            <ChevronRight size={12} aria-hidden />
+                          )}
+                        </span>
                         <span className="text-white font-medium">
                           {formatRange(start, end)}
                         </span>

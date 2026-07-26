@@ -8,6 +8,8 @@ pub enum PracticeMode {
     Replay,
     Quiz,
     Setup,
+    #[serde(rename = "trade-review")]
+    TradeReview,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
@@ -91,6 +93,23 @@ pub struct SetupDetail {
     pub outcome_bars: i64,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "kebab-case")]
+pub enum TradeReviewJudgement {
+    Long,
+    Short,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct TradeReviewDetail {
+    pub judgement: TradeReviewJudgement,
+    pub actual_direction: String,
+    pub actual_pl: f64,
+    pub trade_ref: String,
+    pub correct: bool,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct PracticeTrade {
@@ -108,4 +127,6 @@ pub struct PracticeTrade {
     pub quiz: Option<QuizDetail>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub setup: Option<SetupDetail>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub trade_review: Option<TradeReviewDetail>,
 }

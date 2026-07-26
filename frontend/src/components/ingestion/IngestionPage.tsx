@@ -41,7 +41,7 @@ export function IngestionPage() {
 
   const jobs = useQuery({
     queryKey: LIST_KEY,
-    queryFn: () => rspc.query(['ingestion.listJobs']) as Promise<IngestionJob[]>,
+    queryFn: () => rspc.query(['ingestion.listJobs', null]) as Promise<IngestionJob[]>,
     refetchInterval: 5_000,
   })
 

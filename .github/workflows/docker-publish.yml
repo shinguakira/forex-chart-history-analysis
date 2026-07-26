@@ -1,0 +1,95 @@
+# Builds the multi-stage container image on every push to develop / master
+# and publishes it to GitHub Container Registry as
+# ghcr.io/<owner>/<repo>:{latest,sha-<7chars>}, then rolls the
+# forex-chart-container Azure Container App to the new image. Azure auth
+# is OIDC via a federated identity on the github-forex-chart-cd AAD app
+# (scoped to Contributor on the container app only).
+#
+# Secrets required on the repo (Settings → Secrets and variables → Actions):
+#   AZURE_CLIENT_ID       — the AAD app's appId
+#   AZURE_TENANT_ID       — the AAD tenant id
+#   AZURE_SUBSCRIPTION_ID — the subscription that owns the container app
+
+name: docker-publish
+
+on:
+  push:
+    branches: [master, develop]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  CONTAINER_APP: forex-chart-container
+  RESOURCE_GROUP: DefaultResourceGroup-EJP
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-tag: ${{ steps.tag.outputs.image-tag }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,format=short
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # The deploy job pins to an immutable sha-<short> tag so rollbacks
+      # are a one-line `az containerapp update --image …:sha-<old>`.
+      - name: Resolve image tag for deploy
+        id: tag
+        run: echo "image-tag=${REGISTRY}/${IMAGE_NAME}:sha-$(git rev-parse --short=7 ${{ github.sha }})" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # OIDC token for azure/login
+      contents: read
+
+    steps:
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Update Container App image
+        run: |
+          az containerapp update \
+            --name "${CONTAINER_APP}" \
+            --resource-group "${RESOURCE_GROUP}" \
+            --image "${{ needs.build-and-push.outputs.image-tag }}" \
+            --query "properties.latestRevisionFqdn" -o tsv

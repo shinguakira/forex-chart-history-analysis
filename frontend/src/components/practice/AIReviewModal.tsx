@@ -1,3 +1,4 @@
+import { Bot, X } from 'lucide-react'
 import { useEffect } from 'react'
 import { usePracticeAIReview } from '@/hooks/use-practice-ai-review'
 import type { PracticeTrade } from '@/types/practice'
@@ -30,15 +31,17 @@ export function AIReviewModal({ trade, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
-          <div className="text-sm font-medium text-white">
-            🤖 AI Review · {trade.mode} · {trade.pairId} {trade.timeframe}
+          <div className="flex items-center gap-2 text-sm font-medium text-white">
+            <Bot size={16} aria-hidden />
+            AI Review · {trade.mode} · {trade.pairId} {trade.timeframe}
           </div>
           <button
             type="button"
-            className="text-gray-500 hover:text-gray-200 text-lg leading-none"
+            aria-label="Close review"
+            className="text-gray-500 hover:text-gray-200"
             onClick={onClose}
           >
-            ×
+            <X size={16} aria-hidden />
           </button>
         </div>
         <div className="flex-1 overflow-y-auto px-4 py-3">

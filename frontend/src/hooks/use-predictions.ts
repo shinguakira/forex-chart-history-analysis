@@ -11,13 +11,13 @@ import type { Prediction } from '@/types/prediction'
 
 type GenerateStatus = 'idle' | 'fetching-data' | 'streaming' | 'parsing' | 'complete' | 'error'
 
-export interface GenerateOptions {
+interface GenerateOptions {
   pairIds: string[]
   count?: number
 }
 
 async function loadPredictions(): Promise<Prediction[]> {
-  return (await rspc.query(['predictions.list'])) as Prediction[]
+  return (await rspc.query(['predictions.list', null])) as Prediction[]
 }
 
 async function createPredictions(items: Prediction[]): Promise<void> {
@@ -40,9 +40,11 @@ async function deletePredictionApi(id: string): Promise<void> {
   await rspc.mutation(['predictions.delete', { id }])
 }
 
-function getModelString(provider: 'claude' | 'ollama', ollamaModel: string): string {
-  if (provider === 'claude') return 'claude-sonnet-4-20250514'
-  return `ollama:${ollamaModel}`
+function getModelString(provider: 'claude' | 'ollama'): string {
+  // The actual model is decided server-side by the Rust backend (ANTHROPIC_MODEL
+  // / OLLAMA_MODEL env vars), so we only know the provider here. Keep the
+  // claude label pinned for stat-grouping continuity with older predictions.
+  return provider === 'claude' ? 'claude-sonnet-4-20250514' : 'ollama'
 }
 
 export function usePredictions() {
@@ -67,12 +69,7 @@ export function usePredictions() {
 
   const generate = useCallback(async (opts: GenerateOptions) => {
     const store = useAIStore.getState()
-    const provider = createProvider({
-      type: store.provider,
-      apiKey: store.apiKey,
-      ollamaUrl: store.ollamaUrl,
-      ollamaModel: store.ollamaModel,
-    })
+    const provider = createProvider({ type: store.provider })
 
     if (!provider.isConfigured()) {
       setError('API key not configured')
@@ -111,7 +108,7 @@ export function usePredictions() {
             try {
               setGenerateStatus('parsing')
               const items = parseAIResponse(finalText)
-              const modelStr = getModelString(store.provider, store.ollamaModel)
+              const modelStr = getModelString(store.provider)
               const now = Date.now()
 
               const newPredictions: Prediction[] = items.map((item: unknown) => {

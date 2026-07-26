@@ -17,7 +17,7 @@ export function ForecastPage() {
   const { status, text, error, progress, generateForecast, reset, cancel } = useAIForecast()
   const cached = useAIStore((s) => s.reviewCache.forecast)
 
-  const isConfigured = useIsAIConfigured()
+  const { configured: isConfigured, loading: configLoading } = useIsAIConfigured()
   const forecastText = cached && status === 'idle' ? cached.content : text
   const isCacheStale = cached ? Date.now() - cached.createdAt > STALE_MS : true
 
@@ -37,7 +37,10 @@ export function ForecastPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold text-white">AI Forecast</h1>
           <div className="flex items-center gap-3">
-            {isConfigured && <span className="text-xs text-green-400">API configured</span>}
+            {configLoading && <span className="text-xs text-gray-500">⏳ checking…</span>}
+            {!configLoading && isConfigured && (
+              <span className="text-xs text-green-400">API configured</span>
+            )}
             <button
               type="button"
               className="px-3 py-1.5 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700"
@@ -48,8 +51,8 @@ export function ForecastPage() {
           </div>
         </div>
 
-        {/* Not configured prompt */}
-        {!isConfigured && (
+        {/* Not configured prompt — only after probe resolved */}
+        {!configLoading && !isConfigured && (
           <div className="rounded-lg border border-yellow-600/30 bg-yellow-600/10 p-4">
             <div className="text-sm text-yellow-300 font-medium mb-1">API Key Required</div>
             <div className="text-xs text-yellow-300/70">

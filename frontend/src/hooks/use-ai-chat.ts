@@ -4,7 +4,7 @@ import { createProvider } from '@/lib/ai/provider'
 import { useAIStore } from '@/store/ai-store'
 import type { AIMessage } from '@/types/ai'
 
-export type ChatContextType = 'portfolio' | 'forecast' | 'trade-review'
+type ChatContextType = 'portfolio' | 'forecast' | 'trade-review'
 
 export function useAIChat() {
   const [streaming, setStreaming] = useState(false)

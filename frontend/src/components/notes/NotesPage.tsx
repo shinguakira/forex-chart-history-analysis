@@ -3,6 +3,7 @@ import { useState } from 'react'
 
 import type { Note } from '@/generated/bindings'
 import { rspc } from '@/lib/rspc'
+import { NoteMarkdown } from './NoteMarkdown'
 
 const LIST_KEY = ['notes.list'] as const
 
@@ -14,7 +15,7 @@ export function NotesPage() {
 
   const notesQuery = useQuery({
     queryKey: LIST_KEY,
-    queryFn: () => rspc.query(['notes.list']),
+    queryFn: () => rspc.query(['notes.list', null]),
   })
 
   const upsert = useMutation({
@@ -73,7 +74,7 @@ export function NotesPage() {
             onKeyDown={(e) => {
               if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) handleAdd()
             }}
-            placeholder="Write a note... (Ctrl+Enter to save)"
+            placeholder="Write a note in markdown... (Ctrl+Enter to save)"
             rows={3}
             className="flex-1 rounded bg-gray-800 border border-gray-700 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-none"
           />
@@ -126,7 +127,7 @@ export function NotesPage() {
                 </div>
               ) : (
                 <div>
-                  <div className="text-sm text-gray-200 whitespace-pre-wrap">{note.text}</div>
+                  <NoteMarkdown source={note.text} />
                   <div className="flex items-center justify-between mt-3 pt-2 border-t border-gray-800">
                     <span className="text-[10px] text-gray-600">{formatTime(note.createdAt)}</span>
                     <div className="flex gap-2">

@@ -1391,6 +1391,7 @@ name = "forex-tauri"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "dotenvy",
  "forex-api",
  "forex-core",
  "forex-db",

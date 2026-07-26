@@ -1,4 +1,6 @@
+import { Bot, ChevronLeft, ChevronRight, Dices, Pause, Play, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { TIMEFRAMES } from '@/config/constants'
 import { getPairById, PAIRS } from '@/config/pairs'
 import { useChartData } from '@/hooks/use-chart-data'
@@ -10,6 +12,8 @@ import {
 } from '@/hooks/use-practice-session'
 import { usePracticeSessions } from '@/hooks/use-practice-sessions'
 import { formatDateJST } from '@/lib/date-utils'
+import { calcPips } from '@/lib/practice'
+import { formatPrice } from '@/lib/utils'
 import { usePracticeStore } from '@/store/practice-store'
 import type { Candle, TimeFrame } from '@/types/candle'
 import type { PracticeTrade, ReplayDirection } from '@/types/practice'
@@ -22,19 +26,6 @@ const SCENARIOS: Array<{ id: ScenarioFilter; label: string }> = [
   { id: 'consolidation', label: 'Range' },
   { id: 'gap', label: 'Gap' },
 ]
-
-function pipMultiplier(decimals: number): number {
-  return decimals === 3 ? 100 : 10000
-}
-
-function formatPrice(price: number, decimals: number): string {
-  return price.toFixed(decimals)
-}
-
-function calcPips(direction: ReplayDirection, entry: number, exit: number, decimals: number) {
-  const diff = direction === 'long' ? exit - entry : entry - exit
-  return Math.round(diff * pipMultiplier(decimals) * 10) / 10
-}
 
 interface AutoCloseResult {
   exitIndex: number
@@ -87,6 +78,9 @@ export function ReplayMode() {
   const setBlindMode = usePracticeStore((s) => s.setBlindMode)
   const openPosition = usePracticeStore((s) => s.openPosition)
   const clearPosition = usePracticeStore((s) => s.clearPosition)
+  const indicators = usePracticeStore((s) => s.indicators)
+  const toggleIndicator = usePracticeStore((s) => s.toggleIndicator)
+  const flashResult = usePracticeStore((s) => s.flashResult)
 
   const pair = getPairById(pairId) ?? PAIRS[0]
   const [goToTimestamp, setGoToTimestamp] = useState<number | null>(null)
@@ -181,8 +175,9 @@ export function ReplayMode() {
       }
       addTrade(trade)
       clearPosition()
+      if (pips !== 0) flashResult(pips > 0 ? 'correct' : 'wrong')
     }
-  }, [position, cursorIndex, candles, pair, timeframe, addTrade, clearPosition])
+  }, [position, cursorIndex, candles, pair, timeframe, addTrade, clearPosition, flashResult])
 
   const randomJump = () => {
     setAutoPlaying(false)
@@ -214,6 +209,21 @@ export function ReplayMode() {
     })
   }
 
+  // Mirror placeOrder's validation so the Buy/Sell buttons reflect whether
+  // a click would actually do anything — otherwise a stale SL/TP from a
+  // different pair silently no-ops the order and the button looks broken.
+  const canPlace = (direction: ReplayDirection): boolean => {
+    if (!currentCandle || cursorIndex == null) return false
+    const sl = Number.parseFloat(slInput)
+    const tp = Number.parseFloat(tpInput)
+    if (!Number.isFinite(sl) || !Number.isFinite(tp)) return false
+    const entry = currentCandle.close
+    if (direction === 'long') return sl < entry && tp > entry
+    return sl > entry && tp < entry
+  }
+  const canPlaceLong = canPlace('long')
+  const canPlaceShort = canPlace('short')
+
   const manualClose = () => {
     if (!position || !currentCandle || cursorIndex == null) return
     const exit = currentCandle.close
@@ -243,6 +253,7 @@ export function ReplayMode() {
     addTrade(trade)
     clearPosition()
     setNote('')
+    if (pips !== 0) flashResult(pips > 0 ? 'correct' : 'wrong')
   }
 
   const cancelOrder = () => {
@@ -358,10 +369,11 @@ export function ReplayMode() {
           </select>
           <button
             type="button"
-            className="px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
+            className="flex items-center gap-1 px-3 py-1 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
             onClick={randomJump}
           >
-            🎲 Random Jump
+            <Dices size={14} aria-hidden />
+            Random Jump
           </button>
           <label className="flex items-center gap-1 text-[11px] text-gray-400 cursor-pointer">
             <input
@@ -377,17 +389,25 @@ export function ReplayMode() {
               {formatPrice(currentPrice, pair.decimals)}
             </span>
           )}
+          <div className={blindMode || !currentCandle ? 'ml-auto' : ''}>
+            <IndicatorPanel indicators={indicators} onToggle={toggleIndicator} />
+          </div>
         </div>
 
-        {/* Chart */}
-        <div className="rounded-lg border border-gray-800 bg-[#0f1117] h-[520px] overflow-hidden">
+        {/* Chart — fills 60% of the mobile viewport so charts aren't squished
+            behind the sticky action bar; fixed 520px on desktop where there's
+            no thumb-reach concern. */}
+        <div
+          data-no-swipe
+          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[60vh] md:h-[520px] overflow-hidden"
+        >
           {isLoading ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
               Loading chart...
             </div>
           ) : candles.length === 0 ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
-              Press 🎲 Random Jump to start a session
+              Press Random Jump to start a session
             </div>
           ) : (
             <PracticeChart
@@ -397,6 +417,7 @@ export function ReplayMode() {
               markers={chartMarkers}
               blindMode={blindMode}
               decimals={pair.decimals}
+              indicators={indicators}
             />
           )}
         </div>
@@ -406,18 +427,22 @@ export function ReplayMode() {
           <button
             type="button"
             disabled={!canStepBack}
-            className="px-3 py-1 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-40"
+            aria-label="Step back 1 bar"
+            className="flex items-center gap-1 px-3 py-1 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-40"
             onClick={() => advanceCursor(-1, candles.length - 1)}
           >
-            ⏪ −1
+            <ChevronLeft size={14} aria-hidden />
+            −1
           </button>
           <button
             type="button"
             disabled={!canStep}
-            className="px-3 py-1 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-40"
+            aria-label="Step forward 1 bar"
+            className="flex items-center gap-1 px-3 py-1 text-xs rounded bg-gray-800 text-gray-300 hover:bg-gray-700 disabled:opacity-40"
             onClick={() => advanceCursor(1, candles.length - 1)}
           >
-            +1 ⏩
+            +1
+            <ChevronRight size={14} aria-hidden />
           </button>
           <button
             type="button"
@@ -438,14 +463,24 @@ export function ReplayMode() {
           <button
             type="button"
             disabled={!canStep}
-            className={`px-3 py-1 text-xs rounded ${
+            className={`flex items-center gap-1 px-3 py-1 text-xs rounded ${
               autoPlaying
                 ? 'bg-yellow-600 text-white hover:bg-yellow-500'
                 : 'bg-green-600 text-white hover:bg-green-500'
             } disabled:opacity-40`}
             onClick={() => setAutoPlaying((p) => !p)}
           >
-            {autoPlaying ? '⏸ Pause' : '▶ Play'}
+            {autoPlaying ? (
+              <>
+                <Pause size={14} aria-hidden />
+                Pause
+              </>
+            ) : (
+              <>
+                <Play size={14} aria-hidden />
+                Play
+              </>
+            )}
           </button>
           <select
             value={playSpeed}
@@ -656,7 +691,8 @@ export function ReplayMode() {
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  disabled={!currentCandle}
+                  disabled={!canPlaceLong}
+                  title={canPlaceLong ? '' : 'Set SL below and TP above current price'}
                   className="px-3 py-1.5 text-xs rounded bg-green-600 text-white hover:bg-green-500 disabled:opacity-40"
                   onClick={() => placeOrder('long')}
                 >
@@ -664,7 +700,8 @@ export function ReplayMode() {
                 </button>
                 <button
                   type="button"
-                  disabled={!currentCandle}
+                  disabled={!canPlaceShort}
+                  title={canPlaceShort ? '' : 'Set SL above and TP below current price'}
                   className="px-3 py-1.5 text-xs rounded bg-red-600 text-white hover:bg-red-500 disabled:opacity-40"
                   onClick={() => placeOrder('short')}
                 >
@@ -712,18 +749,20 @@ export function ReplayMode() {
                       </span>
                       <button
                         type="button"
+                        aria-label="AI review"
                         className="text-gray-600 hover:text-blue-400"
                         title="AI review"
                         onClick={() => setReviewTrade(t)}
                       >
-                        🤖
+                        <Bot size={14} aria-hidden />
                       </button>
                       <button
                         type="button"
+                        aria-label="Delete trade"
                         className="text-gray-600 hover:text-red-400"
                         onClick={() => deleteTrade(t.id)}
                       >
-                        ×
+                        <X size={14} aria-hidden />
                       </button>
                     </div>
                   </div>
@@ -733,6 +772,64 @@ export function ReplayMode() {
           )}
         </div>
       </div>
+
+      {/* Mobile sticky action bar — primary Buy/Sell or Close/Cancel kept
+          inside thumb-reach. Hidden on md+ where the right panel is already
+          visible alongside the chart. */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-gray-800 bg-[#0f1117]/95 backdrop-blur px-4 py-3 shadow-2xl">
+        {position ? (
+          <div className="flex gap-2 items-center max-w-7xl mx-auto">
+            <div className="flex flex-col text-[10px] mr-1">
+              <span className="text-gray-500">Unrealized</span>
+              <span
+                className={
+                  (liveUnrealized ?? 0) >= 0
+                    ? 'text-green-400 font-bold'
+                    : 'text-red-400 font-bold'
+                }
+              >
+                {(liveUnrealized ?? 0) > 0 ? '+' : ''}
+                {liveUnrealized ?? 0}p
+              </span>
+            </div>
+            <button
+              type="button"
+              disabled={!currentCandle}
+              className="flex-1 py-3 text-sm font-semibold rounded bg-blue-600 text-white active:bg-blue-700 disabled:opacity-40"
+              onClick={manualClose}
+            >
+              Close @ {formatPrice(currentPrice, pair.decimals)}
+            </button>
+            <button
+              type="button"
+              className="px-3 py-3 text-sm rounded bg-gray-800 text-gray-300"
+              onClick={cancelOrder}
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <div className="flex gap-3 max-w-7xl mx-auto">
+            <button
+              type="button"
+              disabled={!canPlaceLong}
+              className="flex-1 py-3 text-base font-bold rounded bg-green-600 text-white active:bg-green-700 disabled:opacity-40"
+              onClick={() => placeOrder('long')}
+            >
+              Buy
+            </button>
+            <button
+              type="button"
+              disabled={!canPlaceShort}
+              className="flex-1 py-3 text-base font-bold rounded bg-red-600 text-white active:bg-red-700 disabled:opacity-40"
+              onClick={() => placeOrder('short')}
+            >
+              Sell
+            </button>
+          </div>
+        )}
+      </div>
+
       <AIReviewModal trade={reviewTrade} onClose={() => setReviewTrade(null)} />
     </div>
   )

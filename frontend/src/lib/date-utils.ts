@@ -66,16 +66,3 @@ export function formatTimeOnlyJST(unixSeconds: number): string {
     parts.find((p) => p.type === type)?.value ?? ''
   return `${get('hour')}:${get('minute')}`
 }
-
-/** Format unix seconds → "03/23" in JST (for chart date marks) */
-export function formatDateOnlyJST(unixSeconds: number): string {
-  const d = new Date(unixSeconds * 1000)
-  const parts = new Intl.DateTimeFormat('ja-JP', {
-    timeZone: TZ,
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(d)
-  const get = (type: Intl.DateTimeFormatPartTypes) =>
-    parts.find((p) => p.type === type)?.value ?? ''
-  return `${get('month')}/${get('day')}`
-}

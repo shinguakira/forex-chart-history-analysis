@@ -77,5 +77,5 @@ export function createProvider(_config: ProviderConfig = {}): AIProvider {
 }
 
 export async function isAIConfigured(): Promise<boolean> {
-  return (await rspc.query(['ai.isConfigured'])) as boolean
+  return (await rspc.query(['ai.isConfigured', null])) as boolean
 }

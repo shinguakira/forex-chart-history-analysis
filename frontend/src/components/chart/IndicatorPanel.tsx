@@ -1,5 +1,7 @@
+import { Check, LineChart } from 'lucide-react'
 import { useState } from 'react'
 import { useWindowStore } from '@/store/window-store'
+import type { IndicatorEntry } from '@/types/indicators'
 
 const INDICATOR_LABELS: Record<string, { label: string; group: string }> = {
   'sma-20': { label: 'SMA 20', group: 'Moving Averages' },
@@ -20,20 +22,20 @@ function getColor(config: { color?: string; type: string }): string | null {
   return null
 }
 
-interface Props {
-  windowId: string
+interface ControlledProps {
+  indicators: IndicatorEntry[]
+  onToggle: (indicatorId: string) => void
 }
 
-export function IndicatorPanel({ windowId }: Props) {
+/**
+ * Generic indicator picker dropdown. Pass any indicator list and a toggle callback.
+ * Reusable across chart contexts (windowed charts, practice modes, etc.).
+ */
+export function IndicatorPanel({ indicators, onToggle }: ControlledProps) {
   const [open, setOpen] = useState(false)
-  const indicators = useWindowStore(
-    (s) => s.windows.find((w) => w.id === windowId)?.indicators ?? [],
-  )
-  const toggle = useWindowStore((s) => s.toggleWindowIndicator)
-
   const enabledCount = indicators.filter((i) => i.enabled).length
 
-  const groups = new Map<string, typeof indicators>()
+  const groups = new Map<string, IndicatorEntry[]>()
   for (const ind of indicators) {
     const meta = INDICATOR_LABELS[ind.id]
     const group = meta?.group ?? 'Other'
@@ -48,16 +50,7 @@ export function IndicatorPanel({ windowId }: Props) {
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1.5 px-2 py-1 text-xs rounded transition-colors bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white"
       >
-        <svg
-          className="w-3.5 h-3.5"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="M3 3v18h18" />
-          <path d="M7 16l4-8 4 4 4-6" />
-        </svg>
+        <LineChart size={14} aria-hidden />
         Ind
         {enabledCount > 0 && (
           <span className="ml-0.5 px-1 py-0.5 text-xs rounded-full bg-blue-600 text-white leading-none">
@@ -68,7 +61,13 @@ export function IndicatorPanel({ windowId }: Props) {
 
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setOpen(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setOpen(false)
+            }}
+          />
           <div className="absolute right-0 top-full mt-1 z-50 w-56 bg-gray-900 border border-gray-700 rounded-lg shadow-xl overflow-hidden">
             <div className="px-3 py-2 border-b border-gray-700">
               <h3 className="text-xs font-semibold text-white">Technical Indicators</h3>
@@ -86,7 +85,7 @@ export function IndicatorPanel({ windowId }: Props) {
                       <button
                         type="button"
                         key={ind.id}
-                        onClick={() => toggle(windowId, ind.id)}
+                        onClick={() => onToggle(ind.id)}
                         className="w-full flex items-center gap-2 px-3 py-1.5 text-xs hover:bg-gray-800 transition-colors"
                       >
                         <div
@@ -96,17 +95,7 @@ export function IndicatorPanel({ windowId }: Props) {
                               : 'border-gray-600 bg-transparent'
                           }`}
                         >
-                          {ind.enabled && (
-                            <svg
-                              className="w-2.5 h-2.5 text-white"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="3"
-                            >
-                              <path d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
+                          {ind.enabled && <Check size={10} aria-hidden className="text-white" />}
                         </div>
                         {color && (
                           <span
@@ -128,4 +117,17 @@ export function IndicatorPanel({ windowId }: Props) {
       )}
     </div>
   )
+}
+
+interface WindowProps {
+  windowId: string
+}
+
+/** Window-store-backed wrapper used by the multi-window canvas. */
+export function WindowIndicatorPanel({ windowId }: WindowProps) {
+  const indicators = useWindowStore(
+    (s) => s.windows.find((w) => w.id === windowId)?.indicators ?? [],
+  )
+  const toggle = useWindowStore((s) => s.toggleWindowIndicator)
+  return <IndicatorPanel indicators={indicators} onToggle={(id) => toggle(windowId, id)} />
 }
