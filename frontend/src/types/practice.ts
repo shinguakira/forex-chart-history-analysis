@@ -1,8 +1,8 @@
 import type { TimeFrame } from './candle'
 
-export type PracticeMode = 'replay' | 'quiz' | 'setup'
+export type PracticeMode = 'replay' | 'quiz' | 'setup' | 'trade-review'
 
-/** Practice tab — covers the three trading modes plus the review/history tab. */
+/** Practice tab — covers the trading modes plus the review/history tab. */
 export type PracticeView = PracticeMode | 'history'
 
 export type ReplayDirection = 'long' | 'short'
@@ -38,6 +38,14 @@ export interface SetupDetail {
   outcomeBars: number
 }
 
+export interface TradeReviewDetail {
+  judgement: 'long' | 'short'
+  actualDirection: 'bull' | 'bear'
+  actualPl: number
+  tradeRef: string
+  correct: boolean
+}
+
 export interface PracticeTrade {
   id: string
   mode: PracticeMode
@@ -48,4 +56,5 @@ export interface PracticeTrade {
   replay?: ReplayDetail
   quiz?: QuizDetail
   setup?: SetupDetail
+  tradeReview?: TradeReviewDetail
 }

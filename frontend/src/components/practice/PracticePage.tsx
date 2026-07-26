@@ -12,19 +12,19 @@ import { QuizMode } from './QuizMode'
 import { ReplayMode } from './ReplayMode'
 import { ResultFlash } from './ResultFlash'
 import { SetupMode } from './SetupMode'
+import { TradeReviewMode } from './TradeReviewMode'
 
 const VIEWS: Array<{ id: PracticeView; label: string; desc: string }> = [
   { id: 'replay', label: 'Replay', desc: 'Step through bars and trade' },
   { id: 'quiz', label: 'Quiz', desc: 'Up or down? Quick reps' },
   { id: 'setup', label: 'Setup', desc: 'Judge the setup with reasoning' },
+  { id: 'trade-review', label: 'Trade Review', desc: 'Judge your past real trades' },
   { id: 'history', label: 'History', desc: 'Review past answers' },
 ]
 
 // Order used by the mobile swipe gesture — left/right between adjacent
-// modes. History is intentionally outside the cycle: a left-swipe from
-// 'setup' wraps back to 'replay' instead of dropping into a heavy review
-// list mid-drill.
-const SWIPE_VIEWS: PracticeView[] = ['replay', 'quiz', 'setup']
+// modes. History is intentionally outside the cycle.
+const SWIPE_VIEWS: PracticeView[] = ['replay', 'quiz', 'setup', 'trade-review']
 const SWIPE_THRESHOLD_PX = 60
 
 export function PracticePage() {
@@ -126,6 +126,7 @@ export function PracticePage() {
         {view === 'replay' && <ReplayMode />}
         {view === 'quiz' && <QuizMode />}
         {view === 'setup' && <SetupMode />}
+        {view === 'trade-review' && <TradeReviewMode />}
         {view === 'history' && <HistoryMode />}
       </div>
       <SettingsDialog />

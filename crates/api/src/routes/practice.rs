@@ -35,6 +35,7 @@ pub fn mount(r: RouterBuilder<Ctx>) -> RouterBuilder<Ctx> {
                 forex_core::PracticeMode::Replay => "replay",
                 forex_core::PracticeMode::Quiz => "quiz",
                 forex_core::PracticeMode::Setup => "setup",
+                forex_core::PracticeMode::TradeReview => "trade-review",
             };
             let am = practice_trades::ActiveModel {
                 id: Set(input.id),

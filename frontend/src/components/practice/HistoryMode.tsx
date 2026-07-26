@@ -24,6 +24,7 @@ function tradeVerdict(t: PracticeTrade): Verdict {
     if (t.replay.pips < 0) return 'wrong'
     return 'neutral'
   }
+  if (t.tradeReview) return t.tradeReview.correct ? 'correct' : 'wrong'
   return 'neutral'
 }
 
@@ -51,6 +52,11 @@ function tradeBadge(t: PracticeTrade): { label: string; cls: string } {
     if (j === 'short') return { label: 'S', cls: 'bg-red-900/50 text-red-400' }
     return { label: '—', cls: 'bg-gray-700 text-gray-400' }
   }
+  if (t.tradeReview) {
+    return t.tradeReview.judgement === 'long'
+      ? { label: 'L', cls: 'bg-green-900/50 text-green-400' }
+      : { label: 'S', cls: 'bg-red-900/50 text-red-400' }
+  }
   return { label: '?', cls: 'bg-gray-700 text-gray-400' }
 }
 
@@ -59,6 +65,7 @@ const MODE_FILTERS: Array<{ id: PracticeMode | 'all'; label: string }> = [
   { id: 'replay', label: 'Replay' },
   { id: 'quiz', label: 'Quiz' },
   { id: 'setup', label: 'Setup' },
+  { id: 'trade-review', label: 'Trade Review' },
 ]
 
 const VERDICT_FILTERS: Array<{ id: Verdict | 'all'; label: string }> = [

@@ -177,6 +177,7 @@ async fn import_practice(
             PracticeMode::Replay => "replay",
             PracticeMode::Quiz => "quiz",
             PracticeMode::Setup => "setup",
+            PracticeMode::TradeReview => "trade-review",
         };
         let data = serde_json::to_value(&p)?;
         let am = practice_trades::ActiveModel {
