@@ -64,7 +64,7 @@ fn resolve_bind_addr() -> String {
     if let Ok(port) = std::env::var("PORT") {
         return format!("0.0.0.0:{port}");
     }
-    "127.0.0.1:4000".to_string()
+    "127.0.0.1:24000".to_string()
 }
 
 /// Default DATABASE_URL when none is set. Prefer postgres when compiled in

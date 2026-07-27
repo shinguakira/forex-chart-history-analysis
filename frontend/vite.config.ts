@@ -12,9 +12,10 @@ export default defineConfig({
     },
   },
   server: {
+    port: 2173,
     proxy: {
       '/rspc': {
-        target: 'http://localhost:4000',
+        target: 'http://localhost:24000',
         changeOrigin: true,
         ws: true,
       },

@@ -6,7 +6,7 @@ export type Procedures = ProceduresLegacy
 
 const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
 
-const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? 'http://localhost:4000'
+const SERVER_URL = import.meta.env.VITE_SERVER_URL ?? 'http://localhost:24000'
 
 function makeTransport(): Transport {
   if (isTauri) return new TauriPluginRspcTransport()

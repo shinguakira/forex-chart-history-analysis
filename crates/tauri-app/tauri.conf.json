@@ -5,7 +5,7 @@
   "identifier": "com.forex.chart-analysis",
   "build": {
     "frontendDist": "../../frontend/dist",
-    "devUrl": "http://localhost:5173",
+    "devUrl": "http://localhost:2173",
     "beforeDevCommand": "pnpm --dir ../../frontend dev"
   },
   "app": {
