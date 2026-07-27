@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
-    "format": "biome format --write .",
+    "lint": "oxlint src/",
+    "lint:fix": "oxlint --fix src/",
+    "format": "oxfmt src/",
+    "format:check": "oxfmt --check src/",
+    "knip": "knip",
     "preview": "vite preview",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
@@ -29,7 +31,6 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.4.7",
     "@playwright/test": "^1.59.1",
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/router-devtools": "^1.161.3",
@@ -40,6 +41,9 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.3.0",
     "dotenv": "^17.4.2",
+    "knip": "^6.29.0",
+    "oxfmt": "^0.61.0",
+    "oxlint": "^1.76.0",
     "tailwindcss": "^4.2.1",
     "typescript": "~5.9.3",
     "vite": "^6.3.0"
