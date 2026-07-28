@@ -1,5 +1,3 @@
-type IndicatorType = 'sma' | 'ema' | 'rsi' | 'macd' | 'bollingerBands'
-
 interface SmaConfig {
   type: 'sma'
   period: number
