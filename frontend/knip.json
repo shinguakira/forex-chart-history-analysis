@@ -1,13 +1,7 @@
 {
   "$schema": "https://unpkg.com/knip@latest/schema.json",
-  "entry": ["src/main.tsx", "src/routes/**/*.{ts,tsx}"],
+  "entry": ["src/routes/**/*.{ts,tsx}"],
   "project": ["src/**/*.{ts,tsx}"],
-  "ignore": [
-    "src/routeTree.gen.ts",
-    "src/generated/**"
-  ],
-  "ignoreDependencies": [
-    "dotenv",
-    "@tauri-apps/cli"
-  ]
+  "ignore": ["src/routeTree.gen.ts", "src/generated/**"],
+  "ignoreDependencies": ["@tauri-apps/cli", "tailwindcss"]
 }

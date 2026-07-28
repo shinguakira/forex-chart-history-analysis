@@ -1,4 +1,10 @@
-import { createClient, FetchTransport, WebsocketTransport, NoOpTransport, type Transport } from '@rspc/client'
+import {
+  createClient,
+  FetchTransport,
+  WebsocketTransport,
+  NoOpTransport,
+  type Transport,
+} from '@rspc/client'
 import type { ProceduresLegacy } from '@/generated/bindings'
 import { TauriPluginRspcTransport } from './tauri-rspc-transport'
 

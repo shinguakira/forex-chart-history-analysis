@@ -19,13 +19,13 @@ type Judgement = 'long' | 'short'
 
 /** Max age (seconds) of a trade to be usable at each timeframe, matching Yahoo Finance limits. */
 const MAX_TRADE_AGE_S: Record<TimeFrame, number> = {
-  '1':   5   * 86_400,
-  '5':   50  * 86_400,
-  '15':  50  * 86_400,
-  '60':  600 * 86_400,
+  '1': 5 * 86_400,
+  '5': 50 * 86_400,
+  '15': 50 * 86_400,
+  '60': 600 * 86_400,
   '240': 500 * 86_400,
-  D:     1500 * 86_400,
-  W:     3000 * 86_400,
+  D: 1500 * 86_400,
+  W: 3000 * 86_400,
 }
 
 export function TradeReviewMode() {
@@ -98,8 +98,7 @@ export function TradeReviewMode() {
     // Correct = did price move in the predicted direction (openPrice → closePrice)?
     const outcomePips = pipsBetween(activeTrade.openPrice, activeTrade.closePrice, pair.decimals)
     const correct =
-      (judgement === 'long' && outcomePips > 0) ||
-      (judgement === 'short' && outcomePips < 0)
+      (judgement === 'long' && outcomePips > 0) || (judgement === 'short' && outcomePips < 0)
     setIsCorrect(correct)
     flashResult(correct ? 'correct' : 'wrong')
     setPhase('revealed')
@@ -358,7 +357,11 @@ export function TradeReviewMode() {
                         : 'text-gray-400'
                   }`}
                 >
-                  {activeTrade.closePrice > activeTrade.openPrice ? '▲ UP' : activeTrade.closePrice < activeTrade.openPrice ? '▼ DOWN' : '—'}
+                  {activeTrade.closePrice > activeTrade.openPrice
+                    ? '▲ UP'
+                    : activeTrade.closePrice < activeTrade.openPrice
+                      ? '▼ DOWN'
+                      : '—'}
                 </span>
                 <span
                   className={`ml-auto flex items-center gap-1 px-2 py-1 text-xs font-bold rounded ${
@@ -402,7 +405,9 @@ export function TradeReviewMode() {
                         : 'text-red-400'
                     }`}
                   >
-                    {pipsBetween(activeTrade.openPrice, activeTrade.closePrice, pair.decimals) > 0 ? '+' : ''}
+                    {pipsBetween(activeTrade.openPrice, activeTrade.closePrice, pair.decimals) > 0
+                      ? '+'
+                      : ''}
                     {pipsBetween(activeTrade.openPrice, activeTrade.closePrice, pair.decimals)}
                   </div>
                 </div>
@@ -421,7 +426,8 @@ export function TradeReviewMode() {
                   {actualDir === 'long' ? 'Long' : 'Short'}
                 </span>
                 <span className={activeTrade.pl >= 0 ? 'text-green-400' : 'text-red-400'}>
-                  {activeTrade.pl >= 0 ? '+' : ''}{activeTrade.pl.toFixed(0)}¥
+                  {activeTrade.pl >= 0 ? '+' : ''}
+                  {activeTrade.pl.toFixed(0)}¥
                 </span>
                 {!blindMode && (
                   <span className="ml-auto">
@@ -508,7 +514,11 @@ export function TradeReviewMode() {
                           aria-label={r.correct ? 'correct' : 'wrong'}
                           className={r.correct ? 'text-green-400' : 'text-red-400'}
                         >
-                          {r.correct ? <Check size={12} aria-hidden /> : <X size={12} aria-hidden />}
+                          {r.correct ? (
+                            <Check size={12} aria-hidden />
+                          ) : (
+                            <X size={12} aria-hidden />
+                          )}
                         </span>
                       </div>
                     </div>

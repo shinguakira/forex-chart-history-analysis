@@ -17,8 +17,7 @@ type Verdict = 'correct' | 'wrong' | 'neutral'
 
 function tradeVerdict(t: PracticeTrade): Verdict {
   if (t.quiz) return t.quiz.correct ? 'correct' : 'wrong'
-  if (t.setup)
-    return judgementCorrect(t.setup.judgement, t.setup.outcomePips) ? 'correct' : 'wrong'
+  if (t.setup) return judgementCorrect(t.setup.judgement, t.setup.outcomePips) ? 'correct' : 'wrong'
   if (t.replay) {
     if (t.replay.pips > 0) return 'correct'
     if (t.replay.pips < 0) return 'wrong'

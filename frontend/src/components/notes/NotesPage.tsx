@@ -90,7 +90,9 @@ export function NotesPage() {
 
         {!loaded && <div className="text-xs text-gray-500">Loading...</div>}
         {notesQuery.isError && (
-          <div className="text-xs text-red-400">Failed to load notes: {String(notesQuery.error)}</div>
+          <div className="text-xs text-red-400">
+            Failed to load notes: {String(notesQuery.error)}
+          </div>
         )}
 
         <div className="space-y-3">

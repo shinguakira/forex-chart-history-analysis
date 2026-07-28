@@ -23,10 +23,7 @@ export function TradeHistory() {
     return trades.slice().reverse()
   }, [filter, TRADE_HISTORY])
 
-  const totalPl = useMemo(
-    () => TRADE_HISTORY.reduce((sum, t) => sum + t.pl, 0),
-    [TRADE_HISTORY],
-  )
+  const totalPl = useMemo(() => TRADE_HISTORY.reduce((sum, t) => sum + t.pl, 0), [TRADE_HISTORY])
 
   const handleTradeClick = (pairId: string, openDate: string) => {
     const timestamp = Math.floor(new Date(openDate).getTime() / 1000)

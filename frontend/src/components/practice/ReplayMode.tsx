@@ -783,9 +783,7 @@ export function ReplayMode() {
               <span className="text-gray-500">Unrealized</span>
               <span
                 className={
-                  (liveUnrealized ?? 0) >= 0
-                    ? 'text-green-400 font-bold'
-                    : 'text-red-400 font-bold'
+                  (liveUnrealized ?? 0) >= 0 ? 'text-green-400 font-bold' : 'text-red-400 font-bold'
                 }
               >
                 {(liveUnrealized ?? 0) > 0 ? '+' : ''}

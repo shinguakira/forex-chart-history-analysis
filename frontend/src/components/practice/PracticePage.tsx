@@ -63,7 +63,8 @@ export function PracticePage() {
     if (Math.abs(dx) < Math.abs(dy) * 1.5) return // mostly-vertical → ignore
     const idx = SWIPE_VIEWS.indexOf(view as PracticeView)
     if (idx < 0) return
-    const nextIdx = dx < 0 ? (idx + 1) % SWIPE_VIEWS.length : (idx - 1 + SWIPE_VIEWS.length) % SWIPE_VIEWS.length
+    const nextIdx =
+      dx < 0 ? (idx + 1) % SWIPE_VIEWS.length : (idx - 1 + SWIPE_VIEWS.length) % SWIPE_VIEWS.length
     setView(SWIPE_VIEWS[nextIdx])
   }
 
@@ -105,11 +106,7 @@ export function PracticePage() {
               className="p-1.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700"
               onClick={() => setSoundMuted(!soundMuted)}
             >
-              {soundMuted ? (
-                <VolumeX size={14} aria-hidden />
-              ) : (
-                <Volume2 size={14} aria-hidden />
-              )}
+              {soundMuted ? <VolumeX size={14} aria-hidden /> : <Volume2 size={14} aria-hidden />}
             </button>
             <button
               type="button"

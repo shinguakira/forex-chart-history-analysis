@@ -1,13 +1,4 @@
-import {
-  ArrowRight,
-  Bot,
-  Check,
-  Dices,
-  Minus,
-  TrendingDown,
-  TrendingUp,
-  X,
-} from 'lucide-react'
+import { ArrowRight, Bot, Check, Dices, Minus, TrendingDown, TrendingUp, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { TIMEFRAMES } from '@/config/constants'
@@ -524,11 +515,7 @@ export function SetupMode() {
                           aria-label={correct ? 'correct' : 'wrong'}
                           className={correct ? 'text-green-400' : 'text-red-400'}
                         >
-                          {correct ? (
-                            <Check size={12} aria-hidden />
-                          ) : (
-                            <X size={12} aria-hidden />
-                          )}
+                          {correct ? <Check size={12} aria-hidden /> : <X size={12} aria-hidden />}
                         </span>
                         <button
                           type="button"

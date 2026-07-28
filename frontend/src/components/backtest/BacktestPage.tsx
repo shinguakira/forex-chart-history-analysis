@@ -408,9 +408,7 @@ export function BacktestPage() {
                             <ChevronRight size={12} aria-hidden />
                           )}
                         </span>
-                        <span className="text-white font-medium">
-                          {formatRange(start, end)}
-                        </span>
+                        <span className="text-white font-medium">{formatRange(start, end)}</span>
                         <span className="text-gray-500">
                           {cutoffCount}x / {interval}d
                         </span>

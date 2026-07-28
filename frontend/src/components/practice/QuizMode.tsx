@@ -188,9 +188,7 @@ export function QuizMode() {
   }, [quizTrades])
 
   const movePips =
-    askCandle && revealCandle
-      ? pipsBetween(askCandle.close, revealCandle.close, pair.decimals)
-      : 0
+    askCandle && revealCandle ? pipsBetween(askCandle.close, revealCandle.close, pair.decimals) : 0
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4">
@@ -501,11 +499,7 @@ export function QuizMode() {
                         aria-label={q.correct ? 'correct' : 'wrong'}
                         className={q.correct ? 'text-green-400' : 'text-red-400'}
                       >
-                        {q.correct ? (
-                          <Check size={12} aria-hidden />
-                        ) : (
-                          <X size={12} aria-hidden />
-                        )}
+                        {q.correct ? <Check size={12} aria-hidden /> : <X size={12} aria-hidden />}
                       </span>
                     </div>
                   </div>
