@@ -33,7 +33,7 @@ export function Header() {
   }
 
   return (
-    <header className="relative border-b border-gray-800">
+    <header className="relative border-b border-gray-800" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <div className="flex items-center justify-between gap-2 px-4 py-3">
         <div className="flex items-center gap-6 min-w-0">
           <h1 className="text-lg font-bold text-white shrink-0">Forex Chart</h1>

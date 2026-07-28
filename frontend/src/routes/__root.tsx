@@ -3,7 +3,7 @@ import { Header } from '@/components/layout/Header'
 
 function RootLayout() {
   return (
-    <div className="bg-[#0f1117] min-h-screen text-gray-300">
+    <div className="bg-[#0f1117] h-full flex flex-col text-gray-300">
       <Header />
       <Outlet />
     </div>

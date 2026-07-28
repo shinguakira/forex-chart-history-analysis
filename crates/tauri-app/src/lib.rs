@@ -1,15 +1,36 @@
-use std::sync::Arc;
+use std::sync::{Arc, OnceLock};
 
 #[cfg(feature = "sqlite")]
 use anyhow::Context;
 use forex_api::{Ctx, build_procedures, load_config_from_db, make_ctx};
 use forex_db::{connect, migrate};
+use tauri::{AppHandle, Manager};
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use tauri::{
-    AppHandle, Manager, WindowEvent,
+    WindowEvent,
     menu::{Menu, MenuItem},
     tray::TrayIconBuilder,
 };
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use tauri_plugin_autostart::MacosLauncher;
+
+type CtxOnce = Arc<OnceLock<Ctx>>;
+
+/// On Android, seed the DB from the bundled snapshot if app_data_dir has no DB yet.
+#[cfg(target_os = "android")]
+fn seed_db_if_missing(app: &AppHandle) -> anyhow::Result<()> {
+    use anyhow::Context;
+    let app_data = app.path().app_data_dir().context("app_data_dir")?;
+    std::fs::create_dir_all(&app_data).ok();
+    let db_path = app_data.join("forex.db");
+    if !db_path.exists() {
+        let snapshot = include_bytes!("../../../forex.db");
+        std::fs::write(&db_path, snapshot).context("write seeded forex.db")?;
+        tracing::info!("seeded DB from bundled snapshot ({} bytes)", snapshot.len());
+    }
+    Ok(())
+}
 
 /// Resolve the DB URL the desktop app should use.
 ///
@@ -72,40 +93,57 @@ pub fn run() {
 
     let (procedures, _types) = build_procedures().expect("build rspc router");
 
-    tauri::Builder::default()
-        .plugin(tauri_plugin_autostart::init(
-            MacosLauncher::LaunchAgent,
-            Some(vec!["--silent"]),
-        ))
-        .setup(|app| {
-            let db_url = resolve_db_url(app.handle()).expect("resolve DATABASE_URL");
-            tracing::info!("opening {} db: {}", backend_label(&db_url), db_url);
+    // Create the once-cell before the builder so it can be managed at the
+    // earliest possible point — before setup() runs and before the WebView
+    // can issue its first IPC call. The rspc resolver spins until it is
+    // populated, preventing the `state() called before manage()` panic.
+    let ctx_once: CtxOnce = Arc::new(OnceLock::new());
+    let ctx_once_for_setup = ctx_once.clone();
 
-            let db = tauri::async_runtime::block_on(async {
-                let db = connect(&db_url).await?;
-                migrate(&db).await?;
-                Ok::<_, anyhow::Error>(db)
-            })
-            .expect("db connect & migrate");
+    let builder = tauri::Builder::default()
+        .manage(ctx_once);
 
-            let db_arc = Arc::new(db);
-            let ctx = make_ctx(db_arc.clone());
-            tauri::async_runtime::block_on(load_config_from_db(&ctx)).ok();
-            tauri::async_runtime::block_on(forex_ingestor::recover_orphaned_jobs(&db_arc)).ok();
-            tauri::async_runtime::block_on(async {
-                forex_ingestor::spawn_scheduler(db_arc.clone(), ctx.yahoo.clone());
-            });
-            app.manage(ctx);
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    let builder = builder.plugin(tauri_plugin_autostart::init(
+        MacosLauncher::LaunchAgent,
+        Some(vec!["--silent"]),
+    ));
 
-            // Open DevTools automatically in debug builds so chart / rspc IPC
-            // issues are inspectable without right-click being enabled.
-            #[cfg(debug_assertions)]
-            if let Some(w) = app.get_webview_window("main") {
-                w.open_devtools();
-            }
+    let builder = builder.setup(move |app| {
+        #[cfg(target_os = "android")]
+        seed_db_if_missing(app.handle()).expect("seed DB");
 
-            // Tray: tray menu lets the user re-show the window or quit. Closing
-            // the window via the X just hides it, so the scheduler keeps running.
+        let db_url = resolve_db_url(app.handle()).expect("resolve DATABASE_URL");
+        tracing::info!("opening {} db: {}", backend_label(&db_url), db_url);
+
+        let db = tauri::async_runtime::block_on(async {
+            let db = connect(&db_url).await?;
+            migrate(&db).await?;
+            Ok::<_, anyhow::Error>(db)
+        })
+        .expect("db connect & migrate");
+
+        let db_arc = Arc::new(db);
+        let ctx = make_ctx(db_arc.clone());
+
+        // Publish ctx so any IPC calls that were spin-waiting can proceed.
+        ctx_once_for_setup.set(ctx).ok();
+
+        let ctx = ctx_once_for_setup.get().unwrap().clone();
+        let db_arc2 = db_arc.clone();
+        tauri::async_runtime::spawn(async move {
+            load_config_from_db(&ctx).await.ok();
+            forex_ingestor::recover_orphaned_jobs(&db_arc2).await.ok();
+            forex_ingestor::spawn_scheduler(db_arc2, ctx.yahoo.clone());
+        });
+
+        #[cfg(debug_assertions)]
+        if let Some(w) = app.get_webview_window("main") {
+            w.open_devtools();
+        }
+
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        {
             let show_item = MenuItem::with_id(app, "show", "Show", true, None::<&str>)?;
             let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show_item, &quit_item])?;
@@ -125,20 +163,30 @@ pub fn run() {
                     _ => {}
                 })
                 .build(app)?;
-            Ok(())
-        })
-        .on_window_event(|window, event| {
-            if let WindowEvent::CloseRequested { api, .. } = event {
-                let _ = window.hide();
-                api.prevent_close();
-            }
-        })
+        }
+
+        Ok(())
+    });
+
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    let builder = builder.on_window_event(|window, event| {
+        if let WindowEvent::CloseRequested { api, .. } = event {
+            let _ = window.hide();
+            api.prevent_close();
+        }
+    });
+
+    builder
         .plugin(tauri_plugin_rspc::init(procedures, |window: tauri::Window| {
-            window
-                .app_handle()
-                .state::<Ctx>()
-                .inner()
-                .clone()
+            // Spin until setup() populates the once-cell. The JavaBridge
+            // thread can call this before DB init completes on Android.
+            let once = window.app_handle().state::<CtxOnce>();
+            loop {
+                if let Some(ctx) = once.get() {
+                    return ctx.clone();
+                }
+                std::thread::sleep(std::time::Duration::from_millis(5));
+            }
         }))
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
