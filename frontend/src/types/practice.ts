@@ -6,9 +6,9 @@ export type PracticeMode = 'replay' | 'quiz' | 'setup' | 'trade-review'
 export type PracticeView = PracticeMode | 'history'
 
 export type ReplayDirection = 'long' | 'short'
-export type ReplayResult = 'win' | 'loss' | 'manual' | 'breakeven'
+type ReplayResult = 'win' | 'loss' | 'manual' | 'breakeven'
 
-export interface ReplayDetail {
+interface ReplayDetail {
   direction: ReplayDirection
   entryPrice: number
   stopLoss: number
@@ -23,14 +23,14 @@ export interface ReplayDetail {
   note?: string
 }
 
-export interface QuizDetail {
+interface QuizDetail {
   prediction: 'up' | 'down'
   barsAhead: number
   actualMove: number
   correct: boolean
 }
 
-export interface SetupDetail {
+interface SetupDetail {
   judgement: 'long' | 'short' | 'no-trade'
   confidence: 1 | 2 | 3 | 4 | 5
   reason: string
@@ -38,7 +38,7 @@ export interface SetupDetail {
   outcomeBars: number
 }
 
-export interface TradeReviewDetail {
+interface TradeReviewDetail {
   judgement: 'long' | 'short'
   /** Price movement from openPrice to closePrice in pips. Positive = up. */
   outcomePips: number

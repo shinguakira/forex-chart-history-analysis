@@ -10,7 +10,7 @@ export const TIMEFRAMES: TimeFrameConfig[] = [
   { label: '1W', resolution: 'W', intervalMs: 604_800_000 },
 ]
 
-export const DEFAULT_TIMEFRAME = TIMEFRAMES[0]
+const DEFAULT_TIMEFRAME = TIMEFRAMES[0]
 
 export const CHART_COLORS = {
   background: '#0f1117',

@@ -3,7 +3,7 @@ import { fetchCandles } from '@/lib/yahoo-finance'
 import type { Candle, TimeFrame } from '@/types/candle'
 import type { Prediction, PredictionStatus, ValidationResult } from '@/types/prediction'
 
-export const TIMEFRAME_MAP: Record<string, TimeFrame> = {
+const TIMEFRAME_MAP: Record<string, TimeFrame> = {
   '1m': '1',
   '5m': '5',
   '15m': '15',

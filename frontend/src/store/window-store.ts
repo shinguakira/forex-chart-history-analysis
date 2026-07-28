@@ -4,7 +4,7 @@ import { cloneIndicators } from '@/config/indicators'
 import type { Period, TimeFrame } from '@/types/candle'
 import type { IndicatorEntry } from '@/types/indicators'
 
-export interface ChartWindow {
+interface ChartWindow {
   id: string
   pairId: string
   timeframe: TimeFrame
