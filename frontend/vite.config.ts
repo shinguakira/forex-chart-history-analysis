@@ -12,7 +12,7 @@ export default defineConfig({
     },
   },
   server: {
-    port: 2173,
+    port: process.env.PORT ? Number(process.env.PORT) : 2173,
     proxy: {
       '/rspc': {
         target: 'http://localhost:24000',

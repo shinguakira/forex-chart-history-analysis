@@ -6,7 +6,6 @@ import { useAIStore } from '@/store/ai-store'
 import { usePracticeStore } from '@/store/practice-store'
 import type { PracticeView } from '@/types/practice'
 import { SettingsDialog } from '../ai/SettingsDialog'
-import { HistoryMode } from './HistoryMode'
 import { PracticeStats } from './PracticeStats'
 import { QuizMode } from './QuizMode'
 import { ReplayMode } from './ReplayMode'
@@ -19,11 +18,8 @@ const VIEWS: Array<{ id: PracticeView; label: string; desc: string }> = [
   { id: 'quiz', label: 'Quiz', desc: 'Up or down? Quick reps' },
   { id: 'setup', label: 'Setup', desc: 'Judge the setup with reasoning' },
   { id: 'trade-review', label: 'Trade Review', desc: 'Judge your past real trades' },
-  { id: 'history', label: 'History', desc: 'Review past answers' },
 ]
 
-// Order used by the mobile swipe gesture — left/right between adjacent
-// modes. History is intentionally outside the cycle.
 const SWIPE_VIEWS: PracticeView[] = ['replay', 'quiz', 'setup', 'trade-review']
 const SWIPE_THRESHOLD_PX = 60
 
@@ -44,7 +40,7 @@ export function PracticePage() {
 
   const onTouchStart = (e: React.TouchEvent) => {
     if (!isMobile) return
-    if (view === 'history') return
+
     const t = e.touches[0]
     if (!t) return
     const ignore = !!(e.target as HTMLElement | null)?.closest('[data-no-swipe]')
@@ -70,7 +66,7 @@ export function PracticePage() {
 
   return (
     <div
-      className="h-[calc(100vh-49px)] overflow-y-auto bg-[#0f1117] text-gray-200"
+      className="flex-1 min-h-0 overflow-y-auto bg-[#0f1117] text-gray-200"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
@@ -124,7 +120,7 @@ export function PracticePage() {
         {view === 'quiz' && <QuizMode />}
         {view === 'setup' && <SetupMode />}
         {view === 'trade-review' && <TradeReviewMode />}
-        {view === 'history' && <HistoryMode />}
+
       </div>
       <SettingsDialog />
       <ResultFlash />

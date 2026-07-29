@@ -16,6 +16,7 @@ import { Route as ForecastRouteImport } from './routes/forecast'
 import { Route as IngestionRouteImport } from './routes/ingestion'
 import { Route as LearningRouteImport } from './routes/learning'
 import { Route as NotesRouteImport } from './routes/notes'
+import { Route as PlaybookRouteImport } from './routes/playbook'
 import { Route as PracticeRouteImport } from './routes/practice'
 import { Route as PredictionsRouteImport } from './routes/predictions'
 import { Route as ReviewRouteImport } from './routes/review'
@@ -56,6 +57,11 @@ const NotesRoute = NotesRouteImport.update({
   path: '/notes',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlaybookRoute = PlaybookRouteImport.update({
+  id: '/playbook',
+  path: '/playbook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PracticeRoute = PracticeRouteImport.update({
   id: '/practice',
   path: '/practice',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/ingestion': typeof IngestionRoute
   '/learning': typeof LearningRoute
   '/notes': typeof NotesRoute
+  '/playbook': typeof PlaybookRoute
   '/practice': typeof PracticeRoute
   '/predictions': typeof PredictionsRoute
   '/review': typeof ReviewRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/ingestion': typeof IngestionRoute
   '/learning': typeof LearningRoute
   '/notes': typeof NotesRoute
+  '/playbook': typeof PlaybookRoute
   '/practice': typeof PracticeRoute
   '/predictions': typeof PredictionsRoute
   '/review': typeof ReviewRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/ingestion': typeof IngestionRoute
   '/learning': typeof LearningRoute
   '/notes': typeof NotesRoute
+  '/playbook': typeof PlaybookRoute
   '/practice': typeof PracticeRoute
   '/predictions': typeof PredictionsRoute
   '/review': typeof ReviewRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/ingestion'
     | '/learning'
     | '/notes'
+    | '/playbook'
     | '/practice'
     | '/predictions'
     | '/review'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/ingestion'
     | '/learning'
     | '/notes'
+    | '/playbook'
     | '/practice'
     | '/predictions'
     | '/review'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/ingestion'
     | '/learning'
     | '/notes'
+    | '/playbook'
     | '/practice'
     | '/predictions'
     | '/review'
@@ -167,6 +179,7 @@ export interface RootRouteChildren {
   IngestionRoute: typeof IngestionRoute
   LearningRoute: typeof LearningRoute
   NotesRoute: typeof NotesRoute
+  PlaybookRoute: typeof PlaybookRoute
   PracticeRoute: typeof PracticeRoute
   PredictionsRoute: typeof PredictionsRoute
   ReviewRoute: typeof ReviewRoute
@@ -224,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/playbook': {
+      id: '/playbook'
+      path: '/playbook'
+      fullPath: '/playbook'
+      preLoaderRoute: typeof PlaybookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/practice': {
       id: '/practice'
       path: '/practice'
@@ -263,6 +283,7 @@ const rootRouteChildren: RootRouteChildren = {
   IngestionRoute: IngestionRoute,
   LearningRoute: LearningRoute,
   NotesRoute: NotesRoute,
+  PlaybookRoute: PlaybookRoute,
   PracticeRoute: PracticeRoute,
   PredictionsRoute: PredictionsRoute,
   ReviewRoute: ReviewRoute,

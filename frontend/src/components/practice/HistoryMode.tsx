@@ -9,7 +9,7 @@ import { formatDateJST } from '@/lib/date-utils'
 import { judgementCorrect } from '@/lib/practice'
 import { exportPracticeCsv, exportPracticeJson } from '@/lib/practice-export'
 import { usePracticeStore } from '@/store/practice-store'
-import type { PracticeMode, PracticeTrade } from '@/types/practice'
+import type { PracticeTrade } from '@/types/practice'
 import { AIReviewModal } from './AIReviewModal'
 import { type ChartMarker, PracticeChart, type PriceLineSpec } from './PracticeChart'
 
@@ -63,14 +63,6 @@ function tradeBadge(t: PracticeTrade): { label: string; cls: string } {
   return { label: '?', cls: 'bg-gray-700 text-gray-400' }
 }
 
-const MODE_FILTERS: Array<{ id: PracticeMode | 'all'; label: string }> = [
-  { id: 'all', label: 'All' },
-  { id: 'replay', label: 'Replay' },
-  { id: 'quiz', label: 'Quiz' },
-  { id: 'setup', label: 'Setup' },
-  { id: 'trade-review', label: 'Trade Review' },
-]
-
 const VERDICT_FILTERS: Array<{ id: Verdict | 'all'; label: string }> = [
   { id: 'all', label: 'All' },
   { id: 'correct', label: 'Correct' },
@@ -82,7 +74,6 @@ export function HistoryMode() {
   const indicators = usePracticeStore((s) => s.indicators)
   const toggleIndicator = usePracticeStore((s) => s.toggleIndicator)
 
-  const [modeFilter, setModeFilter] = useState<PracticeMode | 'all'>('all')
   const [verdictFilter, setVerdictFilter] = useState<Verdict | 'all'>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [revealFuture, setRevealFuture] = useState(false)
@@ -91,11 +82,10 @@ export function HistoryMode() {
   const filtered = useMemo(() => {
     const sorted = [...trades].sort((a, b) => b.createdAt - a.createdAt)
     return sorted.filter((t) => {
-      if (modeFilter !== 'all' && t.mode !== modeFilter) return false
       if (verdictFilter !== 'all' && tradeVerdict(t) !== verdictFilter) return false
       return true
     })
-  }, [trades, modeFilter, verdictFilter])
+  }, [trades, verdictFilter])
 
   // Keep selection in sync with the filtered list.
   useEffect(() => {
@@ -178,22 +168,6 @@ export function HistoryMode() {
       {/* ─── Left: chart + detail ─── */}
       <div className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex gap-1">
-            {MODE_FILTERS.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                className={`px-2 py-1 text-xs rounded ${
-                  modeFilter === f.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-800 text-gray-400 hover:text-gray-200'
-                }`}
-                onClick={() => setModeFilter(f.id)}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
           <div className="flex gap-1">
             {VERDICT_FILTERS.map((f) => (
               <button

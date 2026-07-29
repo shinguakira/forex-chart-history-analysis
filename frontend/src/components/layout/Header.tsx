@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { to: '/predictions', label: 'Predictions' },
   { to: '/backtest', label: 'Backtest' },
   { to: '/practice', label: 'Practice' },
+  { to: '/playbook', label: 'Playbook' },
   { to: '/notes', label: 'Notes' },
   { to: '/learning', label: 'Learning' },
   { to: '/ingestion', label: 'Ingestion' },

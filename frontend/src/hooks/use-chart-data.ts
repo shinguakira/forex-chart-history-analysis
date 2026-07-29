@@ -7,6 +7,7 @@ interface ChartDataResult {
   regularMarketPrice: number
   previousClose: number
   isLoading: boolean
+  isError: boolean
 }
 
 export function useChartData(
@@ -16,11 +17,12 @@ export function useChartData(
   goToTimestamp: number | null,
   source?: 'yahoo' | 'db',
 ): ChartDataResult {
-  const { data, isLoading } = useHistoricalData(pair, timeframe, period, goToTimestamp, source)
+  const { data, isLoading, isError } = useHistoricalData(pair, timeframe, period, goToTimestamp, source)
   return {
     candles: data?.candles ?? [],
     regularMarketPrice: data?.regularMarketPrice ?? 0,
     previousClose: data?.previousClose ?? 0,
     isLoading,
+    isError,
   }
 }
