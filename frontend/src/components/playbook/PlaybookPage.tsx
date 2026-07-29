@@ -27,7 +27,7 @@ export function PlaybookPage() {
   const [cursorIndex, setCursorIndex] = useState<number | null>(null)
   const [phase, setPhase] = useState<Phase>('idle')
   const [judgement, setJudgement] = useState<Judgement | null>(null)
-  const [isCorrect, setIsCorrect] = useState(false)
+  const [_isCorrect, setIsCorrect] = useState(false)
   const pendingRef = useRef<string | null>(null)
 
   const pool = useMemo(() => {
@@ -39,7 +39,7 @@ export function PlaybookPage() {
 
   const pair = activeTrade ? (getPairById(activeTrade.pairId) ?? PAIRS[0]) : PAIRS[0]
   const period = PERIOD_FOR_PRACTICE_TF['60']
-  const { candles, isLoading, isError } = useChartData(pair, '60', period, goToTimestamp)
+  const { candles, isLoading } = useChartData(pair, '60', period, goToTimestamp)
 
   useEffect(() => {
     if (!pendingRef.current || !activeTrade || candles.length === 0) return
