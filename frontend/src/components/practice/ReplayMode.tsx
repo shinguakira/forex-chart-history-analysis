@@ -375,11 +375,12 @@ export function ReplayMode() {
             <Dices size={14} aria-hidden />
             Random Jump
           </button>
-          <label className="flex items-center gap-1 text-[11px] text-gray-400 cursor-pointer">
+          <label className="flex items-center gap-1.5 text-[11px] text-gray-400 cursor-pointer py-1">
             <input
               type="checkbox"
               checked={blindMode}
               onChange={(e) => setBlindMode(e.target.checked)}
+              className="w-4 h-4 shrink-0"
             />
             Blind
           </label>
@@ -629,7 +630,7 @@ export function ReplayMode() {
                   <button
                     type="button"
                     disabled={!currentCandle}
-                    className="flex-1 px-2 py-0.5 text-[10px] rounded bg-gray-800 text-gray-400 hover:text-gray-200 disabled:opacity-40"
+                    className="flex-1 px-2 py-1 text-[10px] rounded bg-gray-800 text-gray-400 hover:text-gray-200 disabled:opacity-40"
                     onClick={() => setSlAtCurrent(pair.decimals === 3 ? -0.1 : -0.001)}
                   >
                     -10p
@@ -637,7 +638,7 @@ export function ReplayMode() {
                   <button
                     type="button"
                     disabled={!currentCandle}
-                    className="flex-1 px-2 py-0.5 text-[10px] rounded bg-gray-800 text-gray-400 hover:text-gray-200 disabled:opacity-40"
+                    className="flex-1 px-2 py-1 text-[10px] rounded bg-gray-800 text-gray-400 hover:text-gray-200 disabled:opacity-40"
                     onClick={() => setSlAtCurrent(pair.decimals === 3 ? -0.2 : -0.002)}
                   >
                     -20p
@@ -645,7 +646,7 @@ export function ReplayMode() {
                   <button
                     type="button"
                     disabled={!currentCandle}
-                    className="flex-1 px-2 py-0.5 text-[10px] rounded bg-gray-800 text-gray-400 hover:text-gray-200 disabled:opacity-40"
+                    className="flex-1 px-2 py-1 text-[10px] rounded bg-gray-800 text-gray-400 hover:text-gray-200 disabled:opacity-40"
                     onClick={() => setSlAtCurrent(pair.decimals === 3 ? -0.5 : -0.005)}
                   >
                     -50p
@@ -665,7 +666,7 @@ export function ReplayMode() {
                   <button
                     type="button"
                     disabled={!currentCandle}
-                    className="flex-1 px-2 py-0.5 text-[10px] rounded bg-gray-800 text-gray-400 hover:text-gray-200 disabled:opacity-40"
+                    className="flex-1 px-2 py-1 text-[10px] rounded bg-gray-800 text-gray-400 hover:text-gray-200 disabled:opacity-40"
                     onClick={() => setTpAtCurrent(pair.decimals === 3 ? 0.1 : 0.001)}
                   >
                     +10p
@@ -673,7 +674,7 @@ export function ReplayMode() {
                   <button
                     type="button"
                     disabled={!currentCandle}
-                    className="flex-1 px-2 py-0.5 text-[10px] rounded bg-gray-800 text-gray-400 hover:text-gray-200 disabled:opacity-40"
+                    className="flex-1 px-2 py-1 text-[10px] rounded bg-gray-800 text-gray-400 hover:text-gray-200 disabled:opacity-40"
                     onClick={() => setTpAtCurrent(pair.decimals === 3 ? 0.2 : 0.002)}
                   >
                     +20p
@@ -681,7 +682,7 @@ export function ReplayMode() {
                   <button
                     type="button"
                     disabled={!currentCandle}
-                    className="flex-1 px-2 py-0.5 text-[10px] rounded bg-gray-800 text-gray-400 hover:text-gray-200 disabled:opacity-40"
+                    className="flex-1 px-2 py-1 text-[10px] rounded bg-gray-800 text-gray-400 hover:text-gray-200 disabled:opacity-40"
                     onClick={() => setTpAtCurrent(pair.decimals === 3 ? 0.5 : 0.005)}
                   >
                     +50p
@@ -829,7 +830,7 @@ export function ReplayMode() {
                       key={label}
                       type="button"
                       disabled={!currentCandle}
-                      className="flex-1 px-1 py-0.5 text-[9px] rounded bg-gray-800 text-gray-400 active:bg-gray-700 disabled:opacity-40"
+                      className="flex-1 px-1 py-1 text-[9px] rounded bg-gray-800 text-gray-400 active:bg-gray-700 disabled:opacity-40"
                       onClick={() => setSlAtCurrent(offset)}
                     >
                       {label}
@@ -856,7 +857,7 @@ export function ReplayMode() {
                       key={label}
                       type="button"
                       disabled={!currentCandle}
-                      className="flex-1 px-1 py-0.5 text-[9px] rounded bg-gray-800 text-gray-400 active:bg-gray-700 disabled:opacity-40"
+                      className="flex-1 px-1 py-1 text-[9px] rounded bg-gray-800 text-gray-400 active:bg-gray-700 disabled:opacity-40"
                       onClick={() => setTpAtCurrent(offset)}
                     >
                       {label}

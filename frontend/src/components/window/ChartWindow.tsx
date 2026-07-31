@@ -128,12 +128,12 @@ export function ChartWindow({ windowId }: Props) {
       </div>
 
       {/* Controls row 2: period + go-to + latest + trades */}
-      <div className="flex items-center gap-2 px-2 py-1 border-b border-gray-700">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 px-2 py-0.5 border-b border-gray-700">
         <PeriodSelector windowId={windowId} />
-        <div className="ml-auto flex items-center gap-1">
+        <div className="md:ml-auto flex flex-wrap items-center gap-1">
           <TradeToggle windowId={windowId} />
-          <GoToDateInput windowId={windowId} />
           <LatestButton windowId={windowId} />
+          <GoToDateInput windowId={windowId} />
         </div>
       </div>
 

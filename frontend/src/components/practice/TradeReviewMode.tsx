@@ -198,7 +198,7 @@ export function TradeReviewMode() {
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4">
       <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5">
           <select
             value={pairId}
             onChange={(e) => setPairId(e.target.value)}
@@ -230,22 +230,21 @@ export function TradeReviewMode() {
             <Dices size={14} aria-hidden />
             New
           </button>
-          <label className="flex items-center gap-1 text-[11px] text-gray-400 cursor-pointer">
+          <label className="flex items-center gap-1.5 text-[11px] text-gray-400 cursor-pointer py-1">
             <input
               type="checkbox"
               checked={blindMode}
               onChange={(e) => setBlindMode(e.target.checked)}
+              className="w-4 h-4 shrink-0"
             />
             Blind
           </label>
-          <div className="ml-auto">
-            <IndicatorPanel indicators={indicators} onToggle={toggleIndicator} />
-          </div>
+          <IndicatorPanel indicators={indicators} onToggle={toggleIndicator} />
         </div>
 
         <div
           data-no-swipe
-          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[60vh] md:h-[480px] overflow-hidden"
+          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[50vh] md:h-[480px] overflow-hidden"
         >
           {isLoading ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">

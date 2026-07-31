@@ -251,19 +251,21 @@ export function QuizMode() {
             <Dices size={14} aria-hidden />
             New
           </button>
-          <label className="flex items-center gap-1 text-[11px] text-gray-400 cursor-pointer">
+          <label className="flex items-center gap-1.5 text-[11px] text-gray-400 cursor-pointer py-1">
             <input
               type="checkbox"
               checked={blindMode}
               onChange={(e) => setBlindMode(e.target.checked)}
+              className="w-4 h-4 shrink-0"
             />
             Blind
           </label>
-          <label className="flex items-center gap-1 text-[11px] text-gray-400 cursor-pointer">
+          <label className="flex items-center gap-1.5 text-[11px] text-gray-400 cursor-pointer py-1">
             <input
               type="checkbox"
               checked={autoContinue}
               onChange={(e) => setAutoContinue(e.target.checked)}
+              className="w-4 h-4 shrink-0"
             />
             Auto-continue
           </label>
@@ -276,9 +278,7 @@ export function QuizMode() {
               {consecutive} in a row
             </span>
           )}
-          <div className="ml-auto">
-            <IndicatorPanel indicators={indicators} onToggle={toggleIndicator} />
-          </div>
+          <IndicatorPanel indicators={indicators} onToggle={toggleIndicator} />
         </div>
 
         <div
