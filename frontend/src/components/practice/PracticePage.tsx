@@ -1,4 +1,4 @@
-import { Volume2, VolumeX } from 'lucide-react'
+﻿import { Volume2, VolumeX } from 'lucide-react'
 import { useRef } from 'react'
 import { useIsAIConfigured } from '@/hooks/use-is-ai-configured'
 import { useIsMobile } from '@/hooks/use-media-query'
@@ -66,7 +66,7 @@ export function PracticePage() {
 
   return (
     <div
-      className="flex-1 min-h-0 overflow-y-auto bg-[#0f1117] text-gray-200"
+      className="flex-1 min-h-0 overflow-y-auto bg-surface text-gray-200"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >

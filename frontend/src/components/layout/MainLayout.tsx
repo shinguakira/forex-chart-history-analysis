@@ -1,4 +1,4 @@
-import { Menu, X } from 'lucide-react'
+﻿import { Menu, X } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 import { useIsMobile } from '@/hooks/use-media-query'
 import { PairList } from '@/components/sidebar/PairList'
@@ -67,7 +67,7 @@ export function MainLayout() {
                 className="fixed inset-0 bg-black/60 z-40"
                 onClick={() => setDrawerOpen(false)}
               />
-              <aside className="fixed bottom-0 left-0 w-72 max-w-[85vw] z-50 bg-[#0f1117] border-r border-gray-800 overflow-y-auto shadow-2xl flex flex-col" style={{ top: 'calc(49px + env(safe-area-inset-top, 0px))' }}>
+              <aside className="fixed bottom-0 left-0 w-72 max-w-[85vw] z-50 bg-surface border-r border-gray-800 overflow-y-auto shadow-2xl flex flex-col" style={{ top: 'calc(49px + env(safe-area-inset-top, 0px))' }}>
                 <div className="flex items-center justify-between px-2 py-2 border-b border-gray-800">
                   <span className="text-xs text-gray-500 uppercase tracking-wider px-2">Pairs</span>
                   <button

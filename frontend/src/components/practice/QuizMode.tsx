@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Dices, Flame, TrendingDown, TrendingUp, X } from 'lucide-react'
+﻿import { ArrowRight, Check, Dices, Flame, TrendingDown, TrendingUp, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { TIMEFRAMES } from '@/config/constants'
@@ -283,7 +283,7 @@ export function QuizMode() {
 
         <div
           data-no-swipe
-          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[50vh] md:h-[480px] overflow-hidden"
+          className="rounded-lg border border-gray-800 bg-surface h-[50vh] md:h-[480px] overflow-hidden"
         >
           {isLoading ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
@@ -514,7 +514,7 @@ export function QuizMode() {
           Hidden on md+ because the inline question card is already near
           the chart there. */}
       {phase !== 'idle' && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-gray-800 bg-[#0f1117]/95 backdrop-blur px-4 py-3 shadow-2xl">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-gray-800 bg-surface/95 backdrop-blur px-4 py-3 shadow-2xl">
           {phase === 'asking' && (
             <div className="flex gap-3 max-w-7xl mx-auto">
               <button

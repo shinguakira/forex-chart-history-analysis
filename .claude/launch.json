@@ -7,6 +7,13 @@
       "runtimeArgs": ["run", "dev", "--prefix", "frontend"],
       "port": 2173,
       "autoPort": true
+    },
+    {
+      "name": "backend",
+      "runtimeExecutable": "cargo",
+      "runtimeArgs": ["run", "--bin", "forex-server", "--features", "sqlite"],
+      "port": 24000,
+      "url": "http://localhost:24000"
     }
   ]
 }

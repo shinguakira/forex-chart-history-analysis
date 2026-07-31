@@ -1,4 +1,4 @@
-import { Bot, ChevronLeft, ChevronRight, Dices, Pause, Play, X } from 'lucide-react'
+﻿import { Bot, ChevronLeft, ChevronRight, Dices, Pause, Play, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { TIMEFRAMES } from '@/config/constants'
@@ -400,7 +400,7 @@ export function ReplayMode() {
             no thumb-reach concern. */}
         <div
           data-no-swipe
-          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[50vh] md:h-[520px] overflow-hidden"
+          className="rounded-lg border border-gray-800 bg-surface h-[50vh] md:h-[520px] overflow-hidden"
         >
           {isLoading ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
@@ -777,7 +777,7 @@ export function ReplayMode() {
       {/* Mobile sticky action bar — primary Buy/Sell or Close/Cancel kept
           inside thumb-reach. Hidden on md+ where the right panel is already
           visible alongside the chart. */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-gray-800 bg-[#0f1117]/95 backdrop-blur px-4 py-3 shadow-2xl">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-gray-800 bg-surface/95 backdrop-blur px-4 py-3 shadow-2xl">
         {position ? (
           <div className="flex gap-2 items-center max-w-7xl mx-auto">
             <div className="flex flex-col text-[10px] mr-1">

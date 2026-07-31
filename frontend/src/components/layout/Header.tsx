@@ -1,4 +1,4 @@
-import { Link, useRouterState } from '@tanstack/react-router'
+﻿import { Link, useRouterState } from '@tanstack/react-router'
 import { Menu, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -60,7 +60,7 @@ export function Header() {
         </div>
       </div>
       {menuOpen && (
-        <nav className="md:hidden absolute top-full left-0 right-0 z-40 flex flex-col gap-1 px-4 pb-3 pt-2 border-t border-gray-800 bg-[#0f1117] shadow-xl">
+        <nav className="md:hidden absolute top-full left-0 right-0 z-40 flex flex-col gap-1 px-4 pb-3 pt-2 border-t border-gray-800 bg-surface shadow-xl">
           {NAV_ITEMS.map((item) => (
             <Link key={item.to} to={item.to} className={linkClass(item.to, true)}>
               {item.label}

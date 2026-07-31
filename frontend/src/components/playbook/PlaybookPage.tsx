@@ -1,4 +1,4 @@
-import { ArrowRight, TrendingDown, TrendingUp } from 'lucide-react'
+﻿import { ArrowRight, TrendingDown, TrendingUp } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getPairById, PAIRS } from '@/config/pairs'
 import { useChartData } from '@/hooks/use-chart-data'
@@ -39,7 +39,7 @@ export function PlaybookPage() {
 
   const pair = activeTrade ? (getPairById(activeTrade.pairId) ?? PAIRS[0]) : PAIRS[0]
   const period = PERIOD_FOR_PRACTICE_TF['60']
-  const { candles, isLoading } = useChartData(pair, '60', period, goToTimestamp)
+  const { candles, isLoading } = useChartData(pair, '60', period, goToTimestamp, 'db')
 
   useEffect(() => {
     if (!pendingRef.current || !activeTrade || candles.length === 0) return
@@ -86,7 +86,7 @@ export function PlaybookPage() {
     flashResult(correct ? 'correct' : 'wrong')
     setPhase('revealed')
     setCursorIndex(null)
-  }, [judgement, activeTrade, pair, flashResult])
+  }, [judgement, activeTrade, flashResult])
 
   const markers = useMemo<ChartMarker[]>(() => {
     if (phase !== 'revealed' || !activeTrade || candles.length === 0) return []
@@ -120,7 +120,7 @@ export function PlaybookPage() {
   }, [phase, activeTrade, candles])
 
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto bg-[#0f1117] text-gray-200">
+    <div className="flex-1 min-h-0 overflow-y-auto bg-surface text-gray-200">
       <ResultFlash />
       <div className="max-w-4xl mx-auto px-4 py-4 pb-28 md:pb-4 space-y-4">
         <div className="flex items-center gap-3">
@@ -136,27 +136,27 @@ export function PlaybookPage() {
           )}
         </div>
 
+
         <div
           data-no-swipe
-          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[60vh] md:h-[480px] overflow-hidden"
+          className="rounded-lg border border-gray-800 bg-surface h-[60vh] md:h-[480px] overflow-hidden"
         >
           {!loaded ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
               Loading...
             </div>
           ) : phase === 'idle' && !activeTrade ? (
-            <div className="flex flex-col items-center justify-center h-full gap-6">
-              <div className="flex flex-col items-center gap-3">
-                <span className="text-xs text-gray-500 uppercase tracking-widest">Mode</span>
-                <div className="flex gap-2">
+            <div className="flex flex-col h-full">
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-800/50">
+                <div className="flex gap-1">
                   {(['random', 'win', 'loss'] as Filter[]).map((f) => (
                     <button
                       key={f}
                       type="button"
-                      className={`px-5 py-2 text-sm rounded-full font-medium transition-colors ${
+                      className={`px-3 py-1.5 text-xs rounded font-medium transition-colors ${
                         filter === f
                           ? 'bg-blue-600 text-white'
-                          : 'bg-gray-800 text-gray-400 hover:text-gray-200'
+                          : 'bg-gray-800/80 text-gray-400 hover:text-gray-200'
                       }`}
                       onClick={() => setFilter(f)}
                     >
@@ -164,18 +164,22 @@ export function PlaybookPage() {
                     </button>
                   ))}
                 </div>
+                <div className="flex-1" />
+                {pool.length === 0 ? (
+                  <span className="text-xs text-gray-600">No {filter} trades</span>
+                ) : (
+                  <button
+                    type="button"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded bg-blue-600 text-white hover:bg-blue-500 transition-colors"
+                    onClick={pickTrade}
+                  >
+                    Start <ArrowRight size={11} aria-hidden />
+                  </button>
+                )}
               </div>
-              {pool.length === 0 ? (
-                <span className="text-xs text-gray-600">No {filter} trades in history.</span>
-              ) : (
-                <button
-                  type="button"
-                  className="px-10 py-3 text-base font-semibold rounded-full bg-blue-600 text-white hover:bg-blue-500"
-                  onClick={pickTrade}
-                >
-                  Start
-                </button>
-              )}
+              <div className="flex-1 flex items-center justify-center">
+                <span className="text-[11px] text-gray-700 tracking-wide">pick a filter · hit start</span>
+              </div>
             </div>
           ) : phase === 'idle' && activeTrade && isLoading ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">

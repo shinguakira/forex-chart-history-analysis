@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Dices, TrendingDown, TrendingUp, X } from 'lucide-react'
+﻿import { ArrowRight, Check, Dices, TrendingDown, TrendingUp, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { TIMEFRAMES } from '@/config/constants'
@@ -244,7 +244,7 @@ export function TradeReviewMode() {
 
         <div
           data-no-swipe
-          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[50vh] md:h-[480px] overflow-hidden"
+          className="rounded-lg border border-gray-800 bg-surface h-[50vh] md:h-[480px] overflow-hidden"
         >
           {isLoading ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
@@ -531,7 +531,7 @@ export function TradeReviewMode() {
 
       {/* Mobile sticky action bar */}
       {phase === 'asking' && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-gray-800 bg-[#0f1117]/95 backdrop-blur px-4 py-3 shadow-2xl">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-gray-800 bg-surface/95 backdrop-blur px-4 py-3 shadow-2xl">
           <div className="flex flex-col gap-2 max-w-7xl mx-auto">
             <div className="grid grid-cols-2 gap-2">
               {(['long', 'short'] as Judgement[]).map((j) => {
@@ -567,7 +567,7 @@ export function TradeReviewMode() {
         </div>
       )}
       {phase === 'revealed' && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-gray-800 bg-[#0f1117]/95 backdrop-blur px-4 py-3 shadow-2xl">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-gray-800 bg-surface/95 backdrop-blur px-4 py-3 shadow-2xl">
           <button
             type="button"
             className="w-full py-3 text-base font-bold rounded bg-blue-600 text-white active:bg-blue-700 flex items-center justify-center gap-1 max-w-7xl mx-auto"

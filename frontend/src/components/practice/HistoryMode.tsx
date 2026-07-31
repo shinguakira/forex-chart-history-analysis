@@ -1,4 +1,4 @@
-import { Bot, Check, Download, Eye, EyeOff, Trash2, X } from 'lucide-react'
+﻿import { Bot, Check, Download, Eye, EyeOff, Trash2, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { getPairById, PAIRS } from '@/config/pairs'
@@ -228,7 +228,7 @@ export function HistoryMode() {
 
         <div
           data-no-swipe
-          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[60vh] md:h-[480px] overflow-hidden"
+          className="rounded-lg border border-gray-800 bg-surface h-[60vh] md:h-[480px] overflow-hidden"
         >
           {!selected ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
