@@ -399,7 +399,7 @@ export function ReplayMode() {
             no thumb-reach concern. */}
         <div
           data-no-swipe
-          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[60vh] md:h-[520px] overflow-hidden"
+          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[50vh] md:h-[520px] overflow-hidden"
         >
           {isLoading ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
@@ -593,7 +593,7 @@ export function ReplayMode() {
                 rows={2}
                 className="w-full rounded bg-gray-800 border border-gray-700 px-2 py-1 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-blue-500 resize-none"
               />
-              <div className="flex gap-2">
+              <div className="hidden md:flex gap-2">
                 <button
                   type="button"
                   className="flex-1 px-3 py-1.5 text-xs rounded bg-blue-600 text-white hover:bg-blue-500"
@@ -688,7 +688,7 @@ export function ReplayMode() {
                   </button>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="hidden md:grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   disabled={!canPlaceLong}
@@ -807,23 +807,84 @@ export function ReplayMode() {
             </button>
           </div>
         ) : (
-          <div className="flex gap-3 max-w-7xl mx-auto">
-            <button
-              type="button"
-              disabled={!canPlaceLong}
-              className="flex-1 py-3 text-base font-bold rounded bg-green-600 text-white active:bg-green-700 disabled:opacity-40"
-              onClick={() => placeOrder('long')}
-            >
-              Buy
-            </button>
-            <button
-              type="button"
-              disabled={!canPlaceShort}
-              className="flex-1 py-3 text-base font-bold rounded bg-red-600 text-white active:bg-red-700 disabled:opacity-40"
-              onClick={() => placeOrder('short')}
-            >
-              Sell
-            </button>
+          <div className="space-y-2 max-w-7xl mx-auto">
+            {/* Compact SL / TP inputs — replaces the need to scroll to the order panel */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <div className="text-[9px] text-gray-500 mb-0.5">SL</div>
+                <input
+                  type="text"
+                  value={slInput}
+                  onChange={(e) => setSlInput(e.target.value)}
+                  placeholder="0.0000"
+                  className="w-full px-2 py-1 text-xs bg-gray-800 border border-gray-700 rounded text-gray-200 font-mono focus:outline-none focus:border-red-500"
+                />
+                <div className="flex gap-1 mt-1">
+                  {[
+                    { label: '-10p', offset: pair.decimals === 3 ? -0.1 : -0.001 },
+                    { label: '-20p', offset: pair.decimals === 3 ? -0.2 : -0.002 },
+                    { label: '-50p', offset: pair.decimals === 3 ? -0.5 : -0.005 },
+                  ].map(({ label, offset }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      disabled={!currentCandle}
+                      className="flex-1 px-1 py-0.5 text-[9px] rounded bg-gray-800 text-gray-400 active:bg-gray-700 disabled:opacity-40"
+                      onClick={() => setSlAtCurrent(offset)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <div className="text-[9px] text-gray-500 mb-0.5">TP</div>
+                <input
+                  type="text"
+                  value={tpInput}
+                  onChange={(e) => setTpInput(e.target.value)}
+                  placeholder="0.0000"
+                  className="w-full px-2 py-1 text-xs bg-gray-800 border border-gray-700 rounded text-gray-200 font-mono focus:outline-none focus:border-green-500"
+                />
+                <div className="flex gap-1 mt-1">
+                  {[
+                    { label: '+10p', offset: pair.decimals === 3 ? 0.1 : 0.001 },
+                    { label: '+20p', offset: pair.decimals === 3 ? 0.2 : 0.002 },
+                    { label: '+50p', offset: pair.decimals === 3 ? 0.5 : 0.005 },
+                  ].map(({ label, offset }) => (
+                    <button
+                      key={label}
+                      type="button"
+                      disabled={!currentCandle}
+                      className="flex-1 px-1 py-0.5 text-[9px] rounded bg-gray-800 text-gray-400 active:bg-gray-700 disabled:opacity-40"
+                      onClick={() => setTpAtCurrent(offset)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                disabled={!canPlaceLong}
+                title={canPlaceLong ? '' : 'Set SL below and TP above current price'}
+                className="flex-1 py-3 text-base font-bold rounded bg-green-600 text-white active:bg-green-700 disabled:opacity-40"
+                onClick={() => placeOrder('long')}
+              >
+                Buy
+              </button>
+              <button
+                type="button"
+                disabled={!canPlaceShort}
+                title={canPlaceShort ? '' : 'Set SL above and TP below current price'}
+                className="flex-1 py-3 text-base font-bold rounded bg-red-600 text-white active:bg-red-700 disabled:opacity-40"
+                onClick={() => placeOrder('short')}
+              >
+                Sell
+              </button>
+            </div>
           </div>
         )}
       </div>

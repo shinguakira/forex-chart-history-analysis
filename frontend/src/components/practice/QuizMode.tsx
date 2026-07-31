@@ -283,7 +283,7 @@ export function QuizMode() {
 
         <div
           data-no-swipe
-          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[60vh] md:h-[480px] overflow-hidden"
+          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[50vh] md:h-[480px] overflow-hidden"
         >
           {isLoading ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
@@ -335,7 +335,7 @@ export function QuizMode() {
                   {askCandle.close.toFixed(pair.decimals)}
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="hidden md:grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   className="flex items-center justify-center gap-1 px-4 py-3 text-sm rounded bg-green-600 text-white hover:bg-green-500"
@@ -401,7 +401,7 @@ export function QuizMode() {
               </div>
               <button
                 type="button"
-                className="flex w-full items-center justify-center gap-1 px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500"
+                className="hidden md:flex w-full items-center justify-center gap-1 px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500"
                 onClick={next}
               >
                 Next Question

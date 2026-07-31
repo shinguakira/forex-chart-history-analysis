@@ -70,8 +70,9 @@ export function PracticePage() {
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      <div className="max-w-7xl mx-auto px-4 py-4 pb-28 md:pb-4 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className={`max-w-7xl mx-auto px-4 py-4 ${view === 'replay' ? 'pb-44' : 'pb-28'} md:pb-4 space-y-4`}>
+        {/* Desktop header — single row */}
+        <div className="hidden md:flex items-center justify-between">
           <h1 className="text-xl font-bold text-white">Practice</h1>
           <div className="flex items-center gap-3">
             <div className="flex gap-1">
@@ -113,8 +114,53 @@ export function PracticePage() {
             </button>
           </div>
         </div>
+        {/* Mobile header — row 1: title + controls */}
+        <div className="flex md:hidden items-center justify-between">
+          <h1 className="text-xl font-bold text-white">Practice</h1>
+          <div className="flex items-center gap-2">
+            {!aiConfigLoading && aiConfigured && (
+              <span className="text-[10px] text-green-400">AI</span>
+            )}
+            <button
+              type="button"
+              aria-label={soundMuted ? 'Unmute verdict sounds' : 'Mute verdict sounds'}
+              aria-pressed={soundMuted}
+              className="p-1.5 rounded bg-gray-800 text-gray-300"
+              onClick={() => setSoundMuted(!soundMuted)}
+            >
+              {soundMuted ? <VolumeX size={14} aria-hidden /> : <Volume2 size={14} aria-hidden />}
+            </button>
+            <button
+              type="button"
+              className="px-3 py-1 text-xs rounded bg-gray-800 text-gray-300"
+              onClick={() => setSettingsOpen(true)}
+            >
+              Settings
+            </button>
+          </div>
+        </div>
+        {/* Mobile header — row 2: tabs */}
+        <div className="flex md:hidden gap-1 overflow-x-auto pb-0.5">
+          {VIEWS.map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              className={`px-3 py-1 text-xs rounded shrink-0 transition-colors ${
+                view === v.id
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+              }`}
+              onClick={() => setView(v.id)}
+              title={v.desc}
+            >
+              {v.label}
+            </button>
+          ))}
+        </div>
 
-        <PracticeStats />
+        <div className="hidden md:block">
+          <PracticeStats />
+        </div>
 
         {view === 'replay' && <ReplayMode />}
         {view === 'quiz' && <QuizMode />}

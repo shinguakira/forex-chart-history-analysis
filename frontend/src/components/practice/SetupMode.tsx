@@ -249,7 +249,7 @@ export function SetupMode() {
 
         <div
           data-no-swipe
-          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[60vh] md:h-[480px] overflow-hidden"
+          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[50vh] md:h-[480px] overflow-hidden"
         >
           {isLoading ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
@@ -301,7 +301,7 @@ export function SetupMode() {
                   {askCandle.close.toFixed(pair.decimals)}
                 </div>
               )}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="hidden md:grid grid-cols-3 gap-2">
                 {(['long', 'short', 'no-trade'] as Judgement[]).map((j) => {
                   const Icon = j === 'long' ? TrendingUp : j === 'short' ? TrendingDown : Minus
                   const label = j === 'long' ? 'Long' : j === 'short' ? 'Short' : 'No Trade'
@@ -356,7 +356,7 @@ export function SetupMode() {
               <button
                 type="button"
                 disabled={!judgement}
-                className="w-full px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-40"
+                className="hidden md:block w-full px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-40"
                 onClick={submit}
               >
                 Submit & Reveal
@@ -417,7 +417,7 @@ export function SetupMode() {
               )}
               <button
                 type="button"
-                className="flex w-full items-center justify-center gap-1 px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500"
+                className="hidden md:flex w-full items-center justify-center gap-1 px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500"
                 onClick={next}
               >
                 Next Setup
