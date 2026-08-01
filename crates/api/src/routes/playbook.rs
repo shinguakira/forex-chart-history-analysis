@@ -19,6 +19,11 @@ fn parse_ts(date_str: &str) -> Option<i64> {
         .map(|dt| dt.timestamp())
         .ok()
         .or_else(|| {
+            chrono::NaiveDateTime::parse_from_str(date_str, "%Y-%m-%dT%H:%M:%S")
+                .map(|dt| dt.and_utc().timestamp())
+                .ok()
+        })
+        .or_else(|| {
             chrono::NaiveDateTime::parse_from_str(date_str, "%Y-%m-%d %H:%M:%S")
                 .map(|dt| dt.and_utc().timestamp())
                 .ok()
