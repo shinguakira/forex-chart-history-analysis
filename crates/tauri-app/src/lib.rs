@@ -17,14 +17,29 @@ use tauri_plugin_autostart::MacosLauncher;
 
 type CtxOnce = Arc<OnceLock<Ctx>>;
 
-/// On Android, seed the DB from the bundled snapshot if app_data_dir has no DB yet.
+/// On Android, seed the DB from the bundled snapshot if the candles table is empty or missing.
+/// Runs on every launch so APK updates with fresh candle data are picked up automatically.
 #[cfg(target_os = "android")]
 fn seed_db_if_missing(app: &AppHandle) -> anyhow::Result<()> {
     use anyhow::Context;
     let app_data = app.path().app_data_dir().context("app_data_dir")?;
     std::fs::create_dir_all(&app_data).ok();
     let db_path = app_data.join("forex.db");
-    if !db_path.exists() {
+
+    let needs_seed = if !db_path.exists() {
+        true
+    } else {
+        // Check candles count without running migrations
+        let candle_count: u64 = tauri::async_runtime::block_on(async {
+            let url = format!("sqlite://{}?mode=ro", db_path.display());
+            let db = forex_db::connect(&url).await.ok()?;
+            Some(forex_db::candles_count(&db).await)
+        })
+        .unwrap_or(0);
+        candle_count == 0
+    };
+
+    if needs_seed {
         let snapshot = include_bytes!("../../../forex.db");
         std::fs::write(&db_path, snapshot).context("write seeded forex.db")?;
         tracing::info!("seeded DB from bundled snapshot ({} bytes)", snapshot.len());
