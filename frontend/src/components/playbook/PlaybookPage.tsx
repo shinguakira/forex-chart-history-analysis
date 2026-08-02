@@ -10,6 +10,7 @@ import { ResultFlash } from '@/components/practice/ResultFlash'
 import { usePracticeStore } from '@/store/practice-store'
 import { type ChartMarker, PracticeChart } from '@/components/practice/PracticeChart'
 import type { IndicatorEntry } from '@/types/indicators'
+import type { TimeFrame } from '@/types/candle'
 import type { Trade } from '@/types/trade'
 
 const DEFAULT_INDICATORS: IndicatorEntry[] = [
@@ -28,11 +29,25 @@ const FILTER_LABELS: Record<Filter, string> = {
   favorites: '★ Fav',
 }
 
+type PlaybookTF = '5' | '15' | '60' | '240' | 'D'
+const TF_OPTIONS: { tf: PlaybookTF; label: string }[] = [
+  { tf: '5',   label: 'M5'  },
+  { tf: '15',  label: 'M15' },
+  { tf: '60',  label: 'H1'  },
+  { tf: '240', label: 'H4'  },
+  { tf: 'D',   label: 'D1'  },
+]
+
+function tfSource(tf: PlaybookTF): 'db' | 'yahoo' {
+  return tf === '60' ? 'db' : 'yahoo'
+}
+
 export function PlaybookPage() {
   const { trades: allTrades, loaded } = useTradeHistory()
   const flashResult = usePracticeStore((s) => s.flashResult)
   const queryClient = useQueryClient()
 
+  const [chartTf, setChartTf] = useState<PlaybookTF>('60')
   const [filter, setFilter] = useState<Filter>('random')
   const [newestCursor, setNewestCursor] = useState(0)
   const [activeTrade, setActiveTrade] = useState<Trade | null>(null)
@@ -43,6 +58,7 @@ export function PlaybookPage() {
   const [judgement, setJudgement] = useState<Judgement | null>(null)
   const [_isCorrect, setIsCorrect] = useState(false)
   const pendingRef = useRef<string | null>(null)
+  const prevTfRef = useRef<PlaybookTF>('60')
 
   // Reset cursor when filter changes
   useEffect(() => {
@@ -53,6 +69,18 @@ export function PlaybookPage() {
   useEffect(() => {
     setIsActiveFavorite(activeTrade?.isFavorite ?? false)
   }, [activeTrade?.ref])
+
+  // When TF changes while a trade is active: re-trigger cursor-finding for the same trade
+  useEffect(() => {
+    if (prevTfRef.current === chartTf) return
+    prevTfRef.current = chartTf
+    if (!activeTrade) return
+    // Reset to idle so the chart reloads and cursor is re-found
+    setPhase('idle')
+    setCursorIndex(null)
+    setJudgement(null)
+    pendingRef.current = activeTrade.ref
+  }, [chartTf, activeTrade])
 
   const pool = useMemo(() => {
     if (!loaded) return []
@@ -69,8 +97,9 @@ export function PlaybookPage() {
   }, [allTrades, filter, loaded])
 
   const pair = activeTrade ? (getPairById(activeTrade.pairId) ?? PAIRS[0]) : PAIRS[0]
-  const period = PERIOD_FOR_PRACTICE_TF['60']
-  const { candles, isLoading } = useChartData(pair, '60', period, goToTimestamp, 'db')
+  const period = PERIOD_FOR_PRACTICE_TF[chartTf as TimeFrame]
+  const source = tfSource(chartTf)
+  const { candles, isLoading } = useChartData(pair, chartTf as TimeFrame, period, goToTimestamp, source)
 
   useEffect(() => {
     if (!pendingRef.current || !activeTrade || candles.length === 0) return
@@ -188,75 +217,99 @@ export function PlaybookPage() {
 
         <div
           data-no-swipe
-          className="rounded-lg border border-gray-800 bg-surface h-[60vh] md:h-[480px] overflow-hidden"
+          className="rounded-lg border border-gray-800 bg-surface h-[60vh] md:h-[480px] overflow-hidden flex flex-col"
         >
-          {!loaded ? (
-            <div className="flex items-center justify-center h-full text-xs text-gray-500">
-              Loading...
-            </div>
-          ) : phase === 'idle' && !activeTrade ? (
-            <div className="flex flex-col h-full">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-800/50 flex-wrap">
-                <div className="flex flex-wrap gap-1">
-                  {(['random', 'win', 'loss', 'newest', 'favorites'] as Filter[]).map((f) => (
-                    <button
-                      key={f}
-                      type="button"
-                      className={`px-3 py-1.5 text-xs rounded font-medium transition-colors ${
-                        filter === f
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-800/80 text-gray-400 hover:text-gray-200'
-                      }`}
-                      onClick={() => setFilter(f)}
-                    >
-                      {FILTER_LABELS[f]}
-                    </button>
-                  ))}
-                </div>
-                <div className="flex-1" />
-                {pool.length === 0 ? (
-                  <span className="text-xs text-gray-600">No {FILTER_LABELS[filter]} trades</span>
-                ) : (
-                  <button
-                    type="button"
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded bg-blue-600 text-white hover:bg-blue-500 transition-colors"
-                    onClick={pickTrade}
-                  >
-                    {filter === 'newest' ? (
-                      <>#{(newestCursor % pool.length) + 1}/{pool.length}</>
-                    ) : null}
-                    {' '}Start <ArrowRight size={11} aria-hidden />
-                  </button>
-                )}
-              </div>
-              <div className="flex-1 flex items-center justify-center">
-                <span className="text-[11px] text-gray-700 tracking-wide">pick a filter · hit start</span>
-              </div>
-            </div>
-          ) : phase === 'idle' && activeTrade && isLoading ? (
-            <div className="flex items-center justify-center h-full text-xs text-gray-500">
-              Loading chart...
-            </div>
-          ) : phase === 'idle' && activeTrade && !isLoading ? (
-            <div className="flex flex-col items-center justify-center h-full text-xs text-gray-500 gap-3">
-              <span>No chart data for this trade.</span>
+          {/* TF selector — always visible */}
+          <div className="flex items-center gap-1 px-3 py-2 border-b border-gray-800/50 shrink-0">
+            {TF_OPTIONS.map(({ tf, label }) => (
               <button
+                key={tf}
                 type="button"
-                className="px-4 py-2 text-xs rounded bg-blue-600 text-white"
-                onClick={pickTrade}
+                className={`px-2.5 py-1 text-[11px] rounded font-medium transition-colors ${
+                  chartTf === tf
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-800/80 text-gray-500 hover:text-gray-300'
+                }`}
+                onClick={() => setChartTf(tf)}
               >
-                Skip
+                {label}
               </button>
-            </div>
-          ) : (
-            <PracticeChart
-              candles={candles}
-              cursorIndex={cursorIndex}
-              markers={markers}
-              decimals={pair.decimals}
-              indicators={DEFAULT_INDICATORS}
-            />
-          )}
+            ))}
+            {chartTf !== '60' && (
+              <span className="ml-1 text-[10px] text-gray-600">↗ yahoo</span>
+            )}
+          </div>
+
+          {/* Main content */}
+          <div className="flex-1 min-h-0">
+            {!loaded ? (
+              <div className="flex items-center justify-center h-full text-xs text-gray-500">
+                Loading...
+              </div>
+            ) : phase === 'idle' && !activeTrade ? (
+              <div className="flex flex-col h-full">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-800/30 flex-wrap">
+                  <div className="flex flex-wrap gap-1">
+                    {(['random', 'win', 'loss', 'newest', 'favorites'] as Filter[]).map((f) => (
+                      <button
+                        key={f}
+                        type="button"
+                        className={`px-3 py-1.5 text-xs rounded font-medium transition-colors ${
+                          filter === f
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-800/80 text-gray-400 hover:text-gray-200'
+                        }`}
+                        onClick={() => setFilter(f)}
+                      >
+                        {FILTER_LABELS[f]}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex-1" />
+                  {pool.length === 0 ? (
+                    <span className="text-xs text-gray-600">No {FILTER_LABELS[filter]} trades</span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded bg-blue-600 text-white hover:bg-blue-500 transition-colors"
+                      onClick={pickTrade}
+                    >
+                      {filter === 'newest' && (
+                        <span className="opacity-70">#{(newestCursor % pool.length) + 1}/{pool.length}</span>
+                      )}
+                      Start <ArrowRight size={11} aria-hidden />
+                    </button>
+                  )}
+                </div>
+                <div className="flex-1 flex items-center justify-center">
+                  <span className="text-[11px] text-gray-700 tracking-wide">pick a filter · hit start</span>
+                </div>
+              </div>
+            ) : phase === 'idle' && activeTrade && isLoading ? (
+              <div className="flex items-center justify-center h-full text-xs text-gray-500">
+                Loading chart...
+              </div>
+            ) : phase === 'idle' && activeTrade && !isLoading ? (
+              <div className="flex flex-col items-center justify-center h-full text-xs text-gray-500 gap-3">
+                <span>No chart data for this trade.</span>
+                <button
+                  type="button"
+                  className="px-4 py-2 text-xs rounded bg-blue-600 text-white"
+                  onClick={pickTrade}
+                >
+                  Skip
+                </button>
+              </div>
+            ) : (
+              <PracticeChart
+                candles={candles}
+                cursorIndex={cursorIndex}
+                markers={markers}
+                decimals={pair.decimals}
+                indicators={DEFAULT_INDICATORS}
+              />
+            )}
+          </div>
         </div>
 
         {phase === 'asking' && (
