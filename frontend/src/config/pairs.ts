@@ -15,6 +15,9 @@ export const PAIRS: PairConfig[] = [
   { id: 'AUD_JPY', displayName: 'AUD/JPY', yahooSymbol: 'AUDJPY=X', decimals: 3 },
   { id: 'NZD_USD', displayName: 'NZD/USD', yahooSymbol: 'NZDUSD=X', decimals: 5 },
   { id: 'NZD_JPY', displayName: 'NZD/JPY', yahooSymbol: 'NZDJPY=X', decimals: 3 },
+  { id: 'GBP_USD', displayName: 'GBP/USD', yahooSymbol: 'GBPUSD=X', decimals: 5 },
+  { id: 'EUR_GBP', displayName: 'EUR/GBP', yahooSymbol: 'EURGBP=X', decimals: 5 },
+  { id: 'AUD_NZD', displayName: 'AUD/NZD', yahooSymbol: 'AUDNZD=X', decimals: 5 },
 ]
 
 export const DEFAULT_PAIR = PAIRS[0]

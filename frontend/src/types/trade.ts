@@ -8,4 +8,5 @@ export interface Trade {
   openDate: string
   closeDate: string
   ref: string
+  isFavorite: boolean
 }

@@ -73,6 +73,7 @@ async fn import_trades(
             pl: Set(t.pl),
             open_date: Set(t.open_date),
             close_date: Set(t.close_date),
+            is_favorite: Set(0),
         };
         am.insert(db).await?;
         imported += 1;

@@ -18,6 +18,9 @@ pub const PAIRS: &[PairConfig] = &[
     PairConfig { id: "AUD_JPY", display_name: "AUD/JPY", yahoo_symbol: "AUDJPY=X", decimals: 3 },
     PairConfig { id: "NZD_USD", display_name: "NZD/USD", yahoo_symbol: "NZDUSD=X", decimals: 5 },
     PairConfig { id: "NZD_JPY", display_name: "NZD/JPY", yahoo_symbol: "NZDJPY=X", decimals: 3 },
+    PairConfig { id: "GBP_USD", display_name: "GBP/USD", yahoo_symbol: "GBPUSD=X", decimals: 5 },
+    PairConfig { id: "EUR_GBP", display_name: "EUR/GBP", yahoo_symbol: "EURGBP=X", decimals: 5 },
+    PairConfig { id: "AUD_NZD", display_name: "AUD/NZD", yahoo_symbol: "AUDNZD=X", decimals: 5 },
 ];
 
 pub fn pair_by_id(id: &str) -> Option<&'static PairConfig> {

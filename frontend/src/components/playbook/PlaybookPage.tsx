@@ -1,9 +1,11 @@
-﻿import { ArrowRight, TrendingDown, TrendingUp } from 'lucide-react'
+import { useQueryClient } from '@tanstack/react-query'
+import { ArrowRight, Star, TrendingDown, TrendingUp } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getPairById, PAIRS } from '@/config/pairs'
 import { useChartData } from '@/hooks/use-chart-data'
 import { PERIOD_FOR_PRACTICE_TF } from '@/hooks/use-practice-session'
 import { useTradeHistory } from '@/hooks/use-trade-history'
+import { rspc } from '@/lib/rspc'
 import { ResultFlash } from '@/components/practice/ResultFlash'
 import { usePracticeStore } from '@/store/practice-store'
 import { type ChartMarker, PracticeChart } from '@/components/practice/PracticeChart'
@@ -14,15 +16,27 @@ const DEFAULT_INDICATORS: IndicatorEntry[] = [
   { id: 'bb', enabled: true, config: { type: 'bollingerBands', period: 20, stdDev: 2 } },
 ]
 
-type Filter = 'random' | 'win' | 'loss'
+type Filter = 'random' | 'win' | 'loss' | 'newest' | 'favorites'
 type Judgement = 'long' | 'short'
 type Phase = 'idle' | 'asking' | 'revealed'
+
+const FILTER_LABELS: Record<Filter, string> = {
+  random: 'Random',
+  win: 'Win',
+  loss: 'Loss',
+  newest: 'Newest',
+  favorites: '★ Fav',
+}
 
 export function PlaybookPage() {
   const { trades: allTrades, loaded } = useTradeHistory()
   const flashResult = usePracticeStore((s) => s.flashResult)
+  const queryClient = useQueryClient()
+
   const [filter, setFilter] = useState<Filter>('random')
+  const [newestCursor, setNewestCursor] = useState(0)
   const [activeTrade, setActiveTrade] = useState<Trade | null>(null)
+  const [isActiveFavorite, setIsActiveFavorite] = useState(false)
   const [goToTimestamp, setGoToTimestamp] = useState<number | null>(null)
   const [cursorIndex, setCursorIndex] = useState<number | null>(null)
   const [phase, setPhase] = useState<Phase>('idle')
@@ -30,11 +44,28 @@ export function PlaybookPage() {
   const [_isCorrect, setIsCorrect] = useState(false)
   const pendingRef = useRef<string | null>(null)
 
+  // Reset cursor when filter changes
+  useEffect(() => {
+    setNewestCursor(0)
+  }, [filter])
+
+  // Sync local favorite state when active trade changes
+  useEffect(() => {
+    setIsActiveFavorite(activeTrade?.isFavorite ?? false)
+  }, [activeTrade?.ref])
+
   const pool = useMemo(() => {
     if (!loaded) return []
-    if (filter === 'win') return allTrades.filter((t) => t.pl >= 0)
-    if (filter === 'loss') return allTrades.filter((t) => t.pl < 0)
-    return allTrades
+    let base = allTrades
+    if (filter === 'win') base = allTrades.filter((t) => t.pl >= 0)
+    else if (filter === 'loss') base = allTrades.filter((t) => t.pl < 0)
+    else if (filter === 'favorites') base = allTrades.filter((t) => t.isFavorite)
+    if (filter === 'newest') {
+      return [...base].sort(
+        (a, b) => new Date(b.openDate).getTime() - new Date(a.openDate).getTime(),
+      )
+    }
+    return base
   }, [allTrades, filter, loaded])
 
   const pair = activeTrade ? (getPairById(activeTrade.pairId) ?? PAIRS[0]) : PAIRS[0]
@@ -61,14 +92,21 @@ export function PlaybookPage() {
 
   const pickTrade = useCallback(() => {
     if (pool.length === 0) return
-    const t = pool[Math.floor(Math.random() * pool.length)]
+    let t: Trade
+    if (filter === 'newest') {
+      const idx = newestCursor % pool.length
+      t = pool[idx]
+      setNewestCursor((prev) => prev + 1)
+    } else {
+      t = pool[Math.floor(Math.random() * pool.length)]
+    }
     setActiveTrade(t)
     setGoToTimestamp(Math.floor(new Date(t.openDate).getTime() / 1000) + 86400)
     setCursorIndex(null)
     setJudgement(null)
     setPhase('idle')
     pendingRef.current = t.ref
-  }, [pool])
+  }, [pool, filter, newestCursor])
 
   // Auto-skip when chart data is unavailable for the picked trade
   useEffect(() => {
@@ -87,6 +125,18 @@ export function PlaybookPage() {
     setPhase('revealed')
     setCursorIndex(null)
   }, [judgement, activeTrade, flashResult])
+
+  const toggleFavorite = useCallback(async () => {
+    if (!activeTrade) return
+    const next = !isActiveFavorite
+    setIsActiveFavorite(next)
+    try {
+      await rspc.mutation(['trades.setFavorite', { tradeRef: activeTrade.ref, isFavorite: next }])
+      queryClient.invalidateQueries({ queryKey: ['trades.list'] })
+    } catch {
+      setIsActiveFavorite(!next)
+    }
+  }, [activeTrade, isActiveFavorite, queryClient])
 
   const markers = useMemo<ChartMarker[]>(() => {
     if (phase !== 'revealed' || !activeTrade || candles.length === 0) return []
@@ -136,7 +186,6 @@ export function PlaybookPage() {
           )}
         </div>
 
-
         <div
           data-no-swipe
           className="rounded-lg border border-gray-800 bg-surface h-[60vh] md:h-[480px] overflow-hidden"
@@ -147,9 +196,9 @@ export function PlaybookPage() {
             </div>
           ) : phase === 'idle' && !activeTrade ? (
             <div className="flex flex-col h-full">
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-800/50">
-                <div className="flex gap-1">
-                  {(['random', 'win', 'loss'] as Filter[]).map((f) => (
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-800/50 flex-wrap">
+                <div className="flex flex-wrap gap-1">
+                  {(['random', 'win', 'loss', 'newest', 'favorites'] as Filter[]).map((f) => (
                     <button
                       key={f}
                       type="button"
@@ -160,20 +209,23 @@ export function PlaybookPage() {
                       }`}
                       onClick={() => setFilter(f)}
                     >
-                      {f === 'random' ? 'Random' : f === 'win' ? 'Win' : 'Loss'}
+                      {FILTER_LABELS[f]}
                     </button>
                   ))}
                 </div>
                 <div className="flex-1" />
                 {pool.length === 0 ? (
-                  <span className="text-xs text-gray-600">No {filter} trades</span>
+                  <span className="text-xs text-gray-600">No {FILTER_LABELS[filter]} trades</span>
                 ) : (
                   <button
                     type="button"
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded bg-blue-600 text-white hover:bg-blue-500 transition-colors"
                     onClick={pickTrade}
                   >
-                    Start <ArrowRight size={11} aria-hidden />
+                    {filter === 'newest' ? (
+                      <>#{(newestCursor % pool.length) + 1}/{pool.length}</>
+                    ) : null}
+                    {' '}Start <ArrowRight size={11} aria-hidden />
                   </button>
                 )}
               </div>
@@ -259,6 +311,20 @@ export function PlaybookPage() {
                 <div className={activeTrade.pl >= 0 ? 'text-green-400 font-semibold' : 'text-red-400 font-semibold'}>
                   {activeTrade.pl >= 0 ? 'Win' : 'Loss'} {activeTrade.pl >= 0 ? '+' : ''}{activeTrade.pl.toLocaleString()}¥
                 </div>
+              </div>
+              <div className="ml-auto">
+                <button
+                  type="button"
+                  title={isActiveFavorite ? 'Remove from favorites' : 'Add to favorites'}
+                  className={`p-1.5 rounded transition-colors ${
+                    isActiveFavorite
+                      ? 'text-yellow-400 hover:text-yellow-300'
+                      : 'text-gray-600 hover:text-gray-400'
+                  }`}
+                  onClick={toggleFavorite}
+                >
+                  <Star size={18} fill={isActiveFavorite ? 'currentColor' : 'none'} aria-hidden />
+                </button>
               </div>
             </div>
             <button

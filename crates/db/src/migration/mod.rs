@@ -9,6 +9,7 @@ mod m20260427_000005_create_trades;
 mod m20260427_000006_create_candles;
 mod m20260427_000007_create_ingestion_jobs;
 mod m20260427_000008_create_app_settings;
+mod m20260427_000009_add_is_favorite_to_trades;
 
 pub struct Migrator;
 
@@ -24,6 +25,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20260427_000006_create_candles::Migration),
             Box::new(m20260427_000007_create_ingestion_jobs::Migration),
             Box::new(m20260427_000008_create_app_settings::Migration),
+            Box::new(m20260427_000009_add_is_favorite_to_trades::Migration),
         ]
     }
 }
