@@ -1,6 +1,6 @@
 import type { IndicatorEntry } from '@/types/indicators'
 
-export const DEFAULT_INDICATORS: IndicatorEntry[] = [
+const DEFAULT_INDICATORS: IndicatorEntry[] = [
   { id: 'sma-20', enabled: false, config: { type: 'sma', period: 20, color: '#f59e0b' } },
   { id: 'sma-50', enabled: false, config: { type: 'sma', period: 50, color: '#3b82f6' } },
   { id: 'sma-200', enabled: false, config: { type: 'sma', period: 200, color: '#a855f7' } },

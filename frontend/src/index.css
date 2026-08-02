@@ -1,11 +1,15 @@
-@import "tailwindcss";
+@import 'tailwindcss';
+
+@theme {
+  --color-surface: #0f1117;
+}
 
 body {
   margin: 0;
-  background: #0f1117;
+  background: var(--color-surface);
 }
 
 #root {
   width: 100%;
-  min-height: 100vh;
+  height: 100dvh;
 }

@@ -13,7 +13,8 @@ function getContext(): AudioContext | null {
   if (ctx) return ctx
   // Some Safari builds still need the webkit prefix.
   const AC =
-    window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+    window.AudioContext ??
+    (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
   if (!AC) return null
   ctx = new AC()
   return ctx

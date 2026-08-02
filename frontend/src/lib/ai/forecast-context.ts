@@ -4,7 +4,7 @@ import { fetchCandles } from '@/lib/yahoo-finance'
 import type { ForecastContext, ForecastPairData, ForecastTimeframeData } from '@/types/ai'
 import type { TimeFrame } from '@/types/candle'
 
-export const FORECAST_PAIR_IDS = ['USD_JPY', 'EUR_USD', 'EUR_JPY', 'AUD_USD', 'AUD_JPY']
+const FORECAST_PAIR_IDS = ['USD_JPY', 'EUR_USD', 'EUR_JPY', 'AUD_USD', 'AUD_JPY']
 
 const TIMEFRAMES: { label: string; resolution: TimeFrame; lookbackSeconds: number }[] = [
   { label: '5m', resolution: '5', lookbackSeconds: 30 * 300 },

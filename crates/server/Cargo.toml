@@ -15,6 +15,10 @@ path = "src/main.rs"
 name = "export-bindings"
 path = "src/bin/export_bindings.rs"
 
+[[bin]]
+name = "seed-playbook"
+path = "src/bin/seed_playbook.rs"
+
 [features]
 default = ["postgres"]
 postgres = ["forex-db/postgres"]

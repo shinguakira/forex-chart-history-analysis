@@ -1,4 +1,4 @@
-import { ArrowRight, Check, Dices, Flame, TrendingDown, TrendingUp, X } from 'lucide-react'
+﻿import { ArrowRight, Check, Dices, Flame, TrendingDown, TrendingUp, X } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { TIMEFRAMES } from '@/config/constants'
@@ -188,9 +188,7 @@ export function QuizMode() {
   }, [quizTrades])
 
   const movePips =
-    askCandle && revealCandle
-      ? pipsBetween(askCandle.close, revealCandle.close, pair.decimals)
-      : 0
+    askCandle && revealCandle ? pipsBetween(askCandle.close, revealCandle.close, pair.decimals) : 0
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-4">
@@ -253,19 +251,21 @@ export function QuizMode() {
             <Dices size={14} aria-hidden />
             New
           </button>
-          <label className="flex items-center gap-1 text-[11px] text-gray-400 cursor-pointer">
+          <label className="flex items-center gap-1.5 text-[11px] text-gray-400 cursor-pointer py-1">
             <input
               type="checkbox"
               checked={blindMode}
               onChange={(e) => setBlindMode(e.target.checked)}
+              className="w-4 h-4 shrink-0"
             />
             Blind
           </label>
-          <label className="flex items-center gap-1 text-[11px] text-gray-400 cursor-pointer">
+          <label className="flex items-center gap-1.5 text-[11px] text-gray-400 cursor-pointer py-1">
             <input
               type="checkbox"
               checked={autoContinue}
               onChange={(e) => setAutoContinue(e.target.checked)}
+              className="w-4 h-4 shrink-0"
             />
             Auto-continue
           </label>
@@ -278,14 +278,12 @@ export function QuizMode() {
               {consecutive} in a row
             </span>
           )}
-          <div className="ml-auto">
-            <IndicatorPanel indicators={indicators} onToggle={toggleIndicator} />
-          </div>
+          <IndicatorPanel indicators={indicators} onToggle={toggleIndicator} />
         </div>
 
         <div
           data-no-swipe
-          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[60vh] md:h-[480px] overflow-hidden"
+          className="rounded-lg border border-gray-800 bg-surface h-[50vh] md:h-[480px] overflow-hidden"
         >
           {isLoading ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
@@ -337,7 +335,7 @@ export function QuizMode() {
                   {askCandle.close.toFixed(pair.decimals)}
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="hidden md:grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   className="flex items-center justify-center gap-1 px-4 py-3 text-sm rounded bg-green-600 text-white hover:bg-green-500"
@@ -403,7 +401,7 @@ export function QuizMode() {
               </div>
               <button
                 type="button"
-                className="flex w-full items-center justify-center gap-1 px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500"
+                className="hidden md:flex w-full items-center justify-center gap-1 px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500"
                 onClick={next}
               >
                 Next Question
@@ -501,11 +499,7 @@ export function QuizMode() {
                         aria-label={q.correct ? 'correct' : 'wrong'}
                         className={q.correct ? 'text-green-400' : 'text-red-400'}
                       >
-                        {q.correct ? (
-                          <Check size={12} aria-hidden />
-                        ) : (
-                          <X size={12} aria-hidden />
-                        )}
+                        {q.correct ? <Check size={12} aria-hidden /> : <X size={12} aria-hidden />}
                       </span>
                     </div>
                   </div>
@@ -520,7 +514,7 @@ export function QuizMode() {
           Hidden on md+ because the inline question card is already near
           the chart there. */}
       {phase !== 'idle' && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-gray-800 bg-[#0f1117]/95 backdrop-blur px-4 py-3 shadow-2xl">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-gray-800 bg-surface/95 backdrop-blur px-4 py-3 shadow-2xl">
           {phase === 'asking' && (
             <div className="flex gap-3 max-w-7xl mx-auto">
               <button

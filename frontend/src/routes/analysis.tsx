@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { AnalysisPage } from '@/components/analysis/AnalysisPage'
+import { BackendRequired } from '@/components/layout/BackendRequired'
 
 export const Route = createFileRoute('/analysis')({
-  component: AnalysisPage,
+  component: () => <BackendRequired><AnalysisPage /></BackendRequired>,
 })

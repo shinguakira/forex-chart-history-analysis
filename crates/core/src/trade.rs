@@ -15,4 +15,6 @@ pub struct Trade {
     pub close_date: String,
     #[serde(rename = "ref")]
     pub trade_ref: String,
+    #[serde(default)]
+    pub is_favorite: bool,
 }

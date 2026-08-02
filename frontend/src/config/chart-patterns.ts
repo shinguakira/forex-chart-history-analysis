@@ -39,7 +39,7 @@ function mulberry32(seed: number): () => number {
 
 function interpolate(keyPoints: [number, number][]): number[] {
   const total = keyPoints[keyPoints.length - 1][0] + 1
-  const result: number[] = new Array(total)
+  const result: number[] = Array.from({ length: total })
   for (let seg = 0; seg < keyPoints.length - 1; seg++) {
     const [i0, p0] = keyPoints[seg]
     const [i1, p1] = keyPoints[seg + 1]

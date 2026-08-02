@@ -4,7 +4,7 @@ import type { ReplayDirection } from '@/types/practice'
  * Pip multiplier for forex pairs.
  * JPY quote pairs (3-decimal quotes) → 100; 5-decimal quotes → 10000.
  */
-export function pipMultiplier(decimals: number): number {
+function pipMultiplier(decimals: number): number {
   return decimals === 3 ? 100 : 10000
 }
 

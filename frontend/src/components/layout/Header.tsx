@@ -1,4 +1,4 @@
-import { Link, useRouterState } from '@tanstack/react-router'
+﻿import { Link, useRouterState } from '@tanstack/react-router'
 import { Menu, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { to: '/predictions', label: 'Predictions' },
   { to: '/backtest', label: 'Backtest' },
   { to: '/practice', label: 'Practice' },
+  { to: '/playbook', label: 'Playbook' },
   { to: '/notes', label: 'Notes' },
   { to: '/learning', label: 'Learning' },
   { to: '/ingestion', label: 'Ingestion' },
@@ -33,7 +34,7 @@ export function Header() {
   }
 
   return (
-    <header className="relative border-b border-gray-800">
+    <header className="relative border-b border-gray-800" style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       <div className="flex items-center justify-between gap-2 px-4 py-3">
         <div className="flex items-center gap-6 min-w-0">
           <h1 className="text-lg font-bold text-white shrink-0">Forex Chart</h1>
@@ -59,7 +60,7 @@ export function Header() {
         </div>
       </div>
       {menuOpen && (
-        <nav className="md:hidden absolute top-full left-0 right-0 z-40 flex flex-col gap-1 px-4 pb-3 pt-2 border-t border-gray-800 bg-[#0f1117] shadow-xl">
+        <nav className="md:hidden absolute top-full left-0 right-0 z-40 flex flex-col gap-1 px-4 pb-3 pt-2 border-t border-gray-800 bg-surface shadow-xl">
           {NAV_ITEMS.map((item) => (
             <Link key={item.to} to={item.to} className={linkClass(item.to, true)}>
               {item.label}

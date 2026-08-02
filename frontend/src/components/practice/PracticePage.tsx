@@ -1,4 +1,4 @@
-import { Volume2, VolumeX } from 'lucide-react'
+﻿import { Volume2, VolumeX } from 'lucide-react'
 import { useRef } from 'react'
 import { useIsAIConfigured } from '@/hooks/use-is-ai-configured'
 import { useIsMobile } from '@/hooks/use-media-query'
@@ -6,7 +6,6 @@ import { useAIStore } from '@/store/ai-store'
 import { usePracticeStore } from '@/store/practice-store'
 import type { PracticeView } from '@/types/practice'
 import { SettingsDialog } from '../ai/SettingsDialog'
-import { HistoryMode } from './HistoryMode'
 import { PracticeStats } from './PracticeStats'
 import { QuizMode } from './QuizMode'
 import { ReplayMode } from './ReplayMode'
@@ -19,11 +18,8 @@ const VIEWS: Array<{ id: PracticeView; label: string; desc: string }> = [
   { id: 'quiz', label: 'Quiz', desc: 'Up or down? Quick reps' },
   { id: 'setup', label: 'Setup', desc: 'Judge the setup with reasoning' },
   { id: 'trade-review', label: 'Trade Review', desc: 'Judge your past real trades' },
-  { id: 'history', label: 'History', desc: 'Review past answers' },
 ]
 
-// Order used by the mobile swipe gesture — left/right between adjacent
-// modes. History is intentionally outside the cycle.
 const SWIPE_VIEWS: PracticeView[] = ['replay', 'quiz', 'setup', 'trade-review']
 const SWIPE_THRESHOLD_PX = 60
 
@@ -44,7 +40,7 @@ export function PracticePage() {
 
   const onTouchStart = (e: React.TouchEvent) => {
     if (!isMobile) return
-    if (view === 'history') return
+
     const t = e.touches[0]
     if (!t) return
     const ignore = !!(e.target as HTMLElement | null)?.closest('[data-no-swipe]')
@@ -63,18 +59,20 @@ export function PracticePage() {
     if (Math.abs(dx) < Math.abs(dy) * 1.5) return // mostly-vertical → ignore
     const idx = SWIPE_VIEWS.indexOf(view as PracticeView)
     if (idx < 0) return
-    const nextIdx = dx < 0 ? (idx + 1) % SWIPE_VIEWS.length : (idx - 1 + SWIPE_VIEWS.length) % SWIPE_VIEWS.length
+    const nextIdx =
+      dx < 0 ? (idx + 1) % SWIPE_VIEWS.length : (idx - 1 + SWIPE_VIEWS.length) % SWIPE_VIEWS.length
     setView(SWIPE_VIEWS[nextIdx])
   }
 
   return (
     <div
-      className="h-[calc(100vh-49px)] overflow-y-auto bg-[#0f1117] text-gray-200"
+      className="flex-1 min-h-0 overflow-y-auto bg-surface text-gray-200"
       onTouchStart={onTouchStart}
       onTouchEnd={onTouchEnd}
     >
-      <div className="max-w-7xl mx-auto px-4 py-4 pb-28 md:pb-4 space-y-4">
-        <div className="flex items-center justify-between">
+      <div className={`max-w-7xl mx-auto px-4 py-4 ${view === 'replay' ? 'pb-44' : 'pb-28'} md:pb-4 space-y-4`}>
+        {/* Desktop header — single row */}
+        <div className="hidden md:flex items-center justify-between">
           <h1 className="text-xl font-bold text-white">Practice</h1>
           <div className="flex items-center gap-3">
             <div className="flex gap-1">
@@ -105,11 +103,7 @@ export function PracticePage() {
               className="p-1.5 rounded bg-gray-800 text-gray-300 hover:bg-gray-700"
               onClick={() => setSoundMuted(!soundMuted)}
             >
-              {soundMuted ? (
-                <VolumeX size={14} aria-hidden />
-              ) : (
-                <Volume2 size={14} aria-hidden />
-              )}
+              {soundMuted ? <VolumeX size={14} aria-hidden /> : <Volume2 size={14} aria-hidden />}
             </button>
             <button
               type="button"
@@ -120,14 +114,59 @@ export function PracticePage() {
             </button>
           </div>
         </div>
+        {/* Mobile header — row 1: title + controls */}
+        <div className="flex md:hidden items-center justify-between">
+          <h1 className="text-xl font-bold text-white">Practice</h1>
+          <div className="flex items-center gap-2">
+            {!aiConfigLoading && aiConfigured && (
+              <span className="text-[10px] text-green-400">AI</span>
+            )}
+            <button
+              type="button"
+              aria-label={soundMuted ? 'Unmute verdict sounds' : 'Mute verdict sounds'}
+              aria-pressed={soundMuted}
+              className="p-1.5 rounded bg-gray-800 text-gray-300"
+              onClick={() => setSoundMuted(!soundMuted)}
+            >
+              {soundMuted ? <VolumeX size={14} aria-hidden /> : <Volume2 size={14} aria-hidden />}
+            </button>
+            <button
+              type="button"
+              className="px-3 py-1 text-xs rounded bg-gray-800 text-gray-300"
+              onClick={() => setSettingsOpen(true)}
+            >
+              Settings
+            </button>
+          </div>
+        </div>
+        {/* Mobile header — row 2: tabs */}
+        <div className="flex md:hidden gap-1 overflow-x-auto pb-0.5">
+          {VIEWS.map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              className={`px-3 py-1 text-xs rounded shrink-0 transition-colors ${
+                view === v.id
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'
+              }`}
+              onClick={() => setView(v.id)}
+              title={v.desc}
+            >
+              {v.label}
+            </button>
+          ))}
+        </div>
 
-        <PracticeStats />
+        <div className="hidden md:block">
+          <PracticeStats />
+        </div>
 
         {view === 'replay' && <ReplayMode />}
         {view === 'quiz' && <QuizMode />}
         {view === 'setup' && <SetupMode />}
         {view === 'trade-review' && <TradeReviewMode />}
-        {view === 'history' && <HistoryMode />}
+
       </div>
       <SettingsDialog />
       <ResultFlash />

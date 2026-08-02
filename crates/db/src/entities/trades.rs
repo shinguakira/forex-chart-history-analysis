@@ -16,6 +16,7 @@ pub struct Model {
     pub pl: f64,
     pub open_date: String,
     pub close_date: String,
+    pub is_favorite: i32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -38,6 +39,7 @@ impl Model {
             open_date: self.open_date,
             close_date: self.close_date,
             trade_ref: self.trade_ref,
+            is_favorite: self.is_favorite != 0,
         }
     }
 }

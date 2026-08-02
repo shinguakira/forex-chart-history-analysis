@@ -42,22 +42,19 @@ export function SettingsDialog() {
     try {
       const p = createProvider()
       let received = false
-      await p.stream(
-        [{ role: 'user', content: 'Say "ok" and nothing else.' }],
-        {
-          onToken: () => {
-            received = true
-          },
-          onComplete: () => {
-            setTestResult(received ? 'Connected successfully' : 'No response received')
-            setTesting(false)
-          },
-          onError: (err) => {
-            setTestResult(`Error: ${err.message}`)
-            setTesting(false)
-          },
+      await p.stream([{ role: 'user', content: 'Say "ok" and nothing else.' }], {
+        onToken: () => {
+          received = true
         },
-      )
+        onComplete: () => {
+          setTestResult(received ? 'Connected successfully' : 'No response received')
+          setTesting(false)
+        },
+        onError: (err) => {
+          setTestResult(`Error: ${err.message}`)
+          setTesting(false)
+        },
+      })
     } catch (err) {
       setTestResult(`Error: ${err instanceof Error ? err.message : String(err)}`)
       setTesting(false)
@@ -114,8 +111,8 @@ export function SettingsDialog() {
             </div>
             <p className="text-xs text-gray-600 mt-1">
               The actual provider is chosen by the backend's AI_PROVIDER env var. Set
-              ANTHROPIC_API_KEY (Claude) or OLLAMA_URL/OLLAMA_MODEL (Ollama) in the
-              backend .env. Status:{' '}
+              ANTHROPIC_API_KEY (Claude) or OLLAMA_URL/OLLAMA_MODEL (Ollama) in the backend .env.
+              Status:{' '}
               <span className={aiConfigured.data ? 'text-green-400' : 'text-red-400'}>
                 {aiConfigured.data ? 'configured' : 'not configured'}
               </span>

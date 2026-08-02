@@ -25,15 +25,16 @@ export function useHistoricalData(
   timeframe: TimeFrame,
   period: Period,
   goToTimestamp: number | null,
+  source?: 'yahoo' | 'db',
 ) {
   const { period1, period2 } = computeDateRange(period, goToTimestamp)
 
   return useQuery<FetchCandlesResult>({
-    queryKey: ['candles.list', pair.id, timeframe, period1, period2],
+    queryKey: ['candles.list', pair.id, timeframe, period1, period2, source ?? null],
     queryFn: async () =>
       (await rspc.query([
         'candles.list',
-        { pairId: pair.id, timeframe, from: period1, to: period2 },
+        { pairId: pair.id, timeframe, from: period1, to: period2, ...(source ? { source } : {}) },
       ])) as FetchCandlesResult,
     staleTime: POLLING_INTERVAL,
     refetchInterval: goToTimestamp != null ? false : POLLING_INTERVAL,

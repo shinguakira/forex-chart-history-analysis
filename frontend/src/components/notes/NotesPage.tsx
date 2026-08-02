@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+﻿import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 
 import type { Note } from '@/generated/bindings'
@@ -63,7 +63,7 @@ export function NotesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f1117] text-gray-200 p-6">
+    <div className="min-h-screen bg-surface text-gray-200 p-6">
       <div className="max-w-3xl mx-auto space-y-6">
         <h1 className="text-xl font-bold text-white">Notes</h1>
 
@@ -90,7 +90,9 @@ export function NotesPage() {
 
         {!loaded && <div className="text-xs text-gray-500">Loading...</div>}
         {notesQuery.isError && (
-          <div className="text-xs text-red-400">Failed to load notes: {String(notesQuery.error)}</div>
+          <div className="text-xs text-red-400">
+            Failed to load notes: {String(notesQuery.error)}
+          </div>
         )}
 
         <div className="space-y-3">

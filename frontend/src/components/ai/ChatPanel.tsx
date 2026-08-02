@@ -1,4 +1,4 @@
-import { useAIChat } from '@/hooks/use-ai-chat'
+﻿import { useAIChat } from '@/hooks/use-ai-chat'
 import { useTradeHistory } from '@/hooks/use-trade-history'
 import { useAIStore } from '@/store/ai-store'
 import type { AIMessage } from '@/types/ai'
@@ -58,7 +58,7 @@ export function ChatPanel() {
   }
 
   return (
-    <div className="fixed right-0 top-0 bottom-0 w-[400px] z-40 flex flex-col border-l border-gray-700 bg-[#0f1117]">
+    <div className="fixed right-0 top-0 bottom-0 w-[400px] z-40 flex flex-col border-l border-gray-700 bg-surface">
       <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
         <div>
           <span className="text-sm font-medium text-white">Chat</span>

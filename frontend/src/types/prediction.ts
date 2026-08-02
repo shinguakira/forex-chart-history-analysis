@@ -1,4 +1,4 @@
-export type PredictionDirection = 'long' | 'short'
+type PredictionDirection = 'long' | 'short'
 export type PredictionStatus = 'pending' | 'win' | 'loss' | 'expired'
 
 export interface ValidationResult {

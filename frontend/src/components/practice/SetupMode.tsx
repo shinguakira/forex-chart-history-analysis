@@ -1,13 +1,4 @@
-import {
-  ArrowRight,
-  Bot,
-  Check,
-  Dices,
-  Minus,
-  TrendingDown,
-  TrendingUp,
-  X,
-} from 'lucide-react'
+﻿import { ArrowRight, Bot, Check, Dices, Minus, TrendingDown, TrendingUp, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { IndicatorPanel } from '@/components/chart/IndicatorPanel'
 import { TIMEFRAMES } from '@/config/constants'
@@ -243,22 +234,21 @@ export function SetupMode() {
             <Dices size={14} aria-hidden />
             New
           </button>
-          <label className="flex items-center gap-1 text-[11px] text-gray-400 cursor-pointer">
+          <label className="flex items-center gap-1.5 text-[11px] text-gray-400 cursor-pointer py-1">
             <input
               type="checkbox"
               checked={blindMode}
               onChange={(e) => setBlindMode(e.target.checked)}
+              className="w-4 h-4 shrink-0"
             />
             Blind
           </label>
-          <div className="ml-auto">
-            <IndicatorPanel indicators={indicators} onToggle={toggleIndicator} />
-          </div>
+          <IndicatorPanel indicators={indicators} onToggle={toggleIndicator} />
         </div>
 
         <div
           data-no-swipe
-          className="rounded-lg border border-gray-800 bg-[#0f1117] h-[60vh] md:h-[480px] overflow-hidden"
+          className="rounded-lg border border-gray-800 bg-surface h-[50vh] md:h-[480px] overflow-hidden"
         >
           {isLoading ? (
             <div className="flex items-center justify-center h-full text-xs text-gray-500">
@@ -310,7 +300,7 @@ export function SetupMode() {
                   {askCandle.close.toFixed(pair.decimals)}
                 </div>
               )}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="hidden md:grid grid-cols-3 gap-2">
                 {(['long', 'short', 'no-trade'] as Judgement[]).map((j) => {
                   const Icon = j === 'long' ? TrendingUp : j === 'short' ? TrendingDown : Minus
                   const label = j === 'long' ? 'Long' : j === 'short' ? 'Short' : 'No Trade'
@@ -365,7 +355,7 @@ export function SetupMode() {
               <button
                 type="button"
                 disabled={!judgement}
-                className="w-full px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-40"
+                className="hidden md:block w-full px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500 disabled:opacity-40"
                 onClick={submit}
               >
                 Submit & Reveal
@@ -426,7 +416,7 @@ export function SetupMode() {
               )}
               <button
                 type="button"
-                className="flex w-full items-center justify-center gap-1 px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500"
+                className="hidden md:flex w-full items-center justify-center gap-1 px-4 py-2 text-sm rounded bg-blue-600 text-white hover:bg-blue-500"
                 onClick={next}
               >
                 Next Setup
@@ -524,11 +514,7 @@ export function SetupMode() {
                           aria-label={correct ? 'correct' : 'wrong'}
                           className={correct ? 'text-green-400' : 'text-red-400'}
                         >
-                          {correct ? (
-                            <Check size={12} aria-hidden />
-                          ) : (
-                            <X size={12} aria-hidden />
-                          )}
+                          {correct ? <Check size={12} aria-hidden /> : <X size={12} aria-hidden />}
                         </span>
                         <button
                           type="button"
@@ -554,7 +540,7 @@ export function SetupMode() {
           and reason inputs stay in the form above; sticky bar only owns
           the primary CTA so it doesn't dominate. */}
       {phase !== 'idle' && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-gray-800 bg-[#0f1117]/95 backdrop-blur px-4 py-3 shadow-2xl">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 border-t border-gray-800 bg-surface/95 backdrop-blur px-4 py-3 shadow-2xl">
           {phase === 'asking' && (
             <div className="flex flex-col gap-2 max-w-7xl mx-auto">
               <div className="grid grid-cols-3 gap-2">

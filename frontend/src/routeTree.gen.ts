@@ -9,56 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ReviewRouteImport } from './routes/review'
-import { Route as PredictionsRouteImport } from './routes/predictions'
-import { Route as PracticeRouteImport } from './routes/practice'
-import { Route as NotesRouteImport } from './routes/notes'
-import { Route as LearningRouteImport } from './routes/learning'
-import { Route as IngestionRouteImport } from './routes/ingestion'
-import { Route as ForecastRouteImport } from './routes/forecast'
-import { Route as BacktestRouteImport } from './routes/backtest'
-import { Route as AnalysisRouteImport } from './routes/analysis'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AnalysisRouteImport } from './routes/analysis'
+import { Route as BacktestRouteImport } from './routes/backtest'
+import { Route as ForecastRouteImport } from './routes/forecast'
+import { Route as IngestionRouteImport } from './routes/ingestion'
+import { Route as LearningRouteImport } from './routes/learning'
+import { Route as NotesRouteImport } from './routes/notes'
+import { Route as PlaybookRouteImport } from './routes/playbook'
+import { Route as PracticeRouteImport } from './routes/practice'
+import { Route as PredictionsRouteImport } from './routes/predictions'
+import { Route as ReviewRouteImport } from './routes/review'
 import { Route as PairPairIdRouteImport } from './routes/pair.$pairId'
 
-const ReviewRoute = ReviewRouteImport.update({
-  id: '/review',
-  path: '/review',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PredictionsRoute = PredictionsRouteImport.update({
-  id: '/predictions',
-  path: '/predictions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PracticeRoute = PracticeRouteImport.update({
-  id: '/practice',
-  path: '/practice',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NotesRoute = NotesRouteImport.update({
-  id: '/notes',
-  path: '/notes',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LearningRoute = LearningRouteImport.update({
-  id: '/learning',
-  path: '/learning',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IngestionRoute = IngestionRouteImport.update({
-  id: '/ingestion',
-  path: '/ingestion',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ForecastRoute = ForecastRouteImport.update({
-  id: '/forecast',
-  path: '/forecast',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BacktestRoute = BacktestRouteImport.update({
-  id: '/backtest',
-  path: '/backtest',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnalysisRoute = AnalysisRouteImport.update({
@@ -66,9 +32,49 @@ const AnalysisRoute = AnalysisRouteImport.update({
   path: '/analysis',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const BacktestRoute = BacktestRouteImport.update({
+  id: '/backtest',
+  path: '/backtest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForecastRoute = ForecastRouteImport.update({
+  id: '/forecast',
+  path: '/forecast',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IngestionRoute = IngestionRouteImport.update({
+  id: '/ingestion',
+  path: '/ingestion',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LearningRoute = LearningRouteImport.update({
+  id: '/learning',
+  path: '/learning',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotesRoute = NotesRouteImport.update({
+  id: '/notes',
+  path: '/notes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlaybookRoute = PlaybookRouteImport.update({
+  id: '/playbook',
+  path: '/playbook',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PracticeRoute = PracticeRouteImport.update({
+  id: '/practice',
+  path: '/practice',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PredictionsRoute = PredictionsRouteImport.update({
+  id: '/predictions',
+  path: '/predictions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReviewRoute = ReviewRouteImport.update({
+  id: '/review',
+  path: '/review',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PairPairIdRoute = PairPairIdRouteImport.update({
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/ingestion': typeof IngestionRoute
   '/learning': typeof LearningRoute
   '/notes': typeof NotesRoute
+  '/playbook': typeof PlaybookRoute
   '/practice': typeof PracticeRoute
   '/predictions': typeof PredictionsRoute
   '/review': typeof ReviewRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/ingestion': typeof IngestionRoute
   '/learning': typeof LearningRoute
   '/notes': typeof NotesRoute
+  '/playbook': typeof PlaybookRoute
   '/practice': typeof PracticeRoute
   '/predictions': typeof PredictionsRoute
   '/review': typeof ReviewRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/ingestion': typeof IngestionRoute
   '/learning': typeof LearningRoute
   '/notes': typeof NotesRoute
+  '/playbook': typeof PlaybookRoute
   '/practice': typeof PracticeRoute
   '/predictions': typeof PredictionsRoute
   '/review': typeof ReviewRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/ingestion'
     | '/learning'
     | '/notes'
+    | '/playbook'
     | '/practice'
     | '/predictions'
     | '/review'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/ingestion'
     | '/learning'
     | '/notes'
+    | '/playbook'
     | '/practice'
     | '/predictions'
     | '/review'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/ingestion'
     | '/learning'
     | '/notes'
+    | '/playbook'
     | '/practice'
     | '/predictions'
     | '/review'
@@ -167,6 +179,7 @@ export interface RootRouteChildren {
   IngestionRoute: typeof IngestionRoute
   LearningRoute: typeof LearningRoute
   NotesRoute: typeof NotesRoute
+  PlaybookRoute: typeof PlaybookRoute
   PracticeRoute: typeof PracticeRoute
   PredictionsRoute: typeof PredictionsRoute
   ReviewRoute: typeof ReviewRoute
@@ -175,60 +188,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/review': {
-      id: '/review'
-      path: '/review'
-      fullPath: '/review'
-      preLoaderRoute: typeof ReviewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/predictions': {
-      id: '/predictions'
-      path: '/predictions'
-      fullPath: '/predictions'
-      preLoaderRoute: typeof PredictionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/practice': {
-      id: '/practice'
-      path: '/practice'
-      fullPath: '/practice'
-      preLoaderRoute: typeof PracticeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/notes': {
-      id: '/notes'
-      path: '/notes'
-      fullPath: '/notes'
-      preLoaderRoute: typeof NotesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/learning': {
-      id: '/learning'
-      path: '/learning'
-      fullPath: '/learning'
-      preLoaderRoute: typeof LearningRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ingestion': {
-      id: '/ingestion'
-      path: '/ingestion'
-      fullPath: '/ingestion'
-      preLoaderRoute: typeof IngestionRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forecast': {
-      id: '/forecast'
-      path: '/forecast'
-      fullPath: '/forecast'
-      preLoaderRoute: typeof ForecastRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/backtest': {
-      id: '/backtest'
-      path: '/backtest'
-      fullPath: '/backtest'
-      preLoaderRoute: typeof BacktestRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/analysis': {
@@ -238,11 +202,67 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AnalysisRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/backtest': {
+      id: '/backtest'
+      path: '/backtest'
+      fullPath: '/backtest'
+      preLoaderRoute: typeof BacktestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forecast': {
+      id: '/forecast'
+      path: '/forecast'
+      fullPath: '/forecast'
+      preLoaderRoute: typeof ForecastRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ingestion': {
+      id: '/ingestion'
+      path: '/ingestion'
+      fullPath: '/ingestion'
+      preLoaderRoute: typeof IngestionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/learning': {
+      id: '/learning'
+      path: '/learning'
+      fullPath: '/learning'
+      preLoaderRoute: typeof LearningRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notes': {
+      id: '/notes'
+      path: '/notes'
+      fullPath: '/notes'
+      preLoaderRoute: typeof NotesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/playbook': {
+      id: '/playbook'
+      path: '/playbook'
+      fullPath: '/playbook'
+      preLoaderRoute: typeof PlaybookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/practice': {
+      id: '/practice'
+      path: '/practice'
+      fullPath: '/practice'
+      preLoaderRoute: typeof PracticeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/predictions': {
+      id: '/predictions'
+      path: '/predictions'
+      fullPath: '/predictions'
+      preLoaderRoute: typeof PredictionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/review': {
+      id: '/review'
+      path: '/review'
+      fullPath: '/review'
+      preLoaderRoute: typeof ReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pair/$pairId': {
@@ -263,6 +283,7 @@ const rootRouteChildren: RootRouteChildren = {
   IngestionRoute: IngestionRoute,
   LearningRoute: LearningRoute,
   NotesRoute: NotesRoute,
+  PlaybookRoute: PlaybookRoute,
   PracticeRoute: PracticeRoute,
   PredictionsRoute: PredictionsRoute,
   ReviewRoute: ReviewRoute,

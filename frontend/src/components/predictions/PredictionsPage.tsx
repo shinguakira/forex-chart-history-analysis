@@ -1,4 +1,4 @@
-import { useIsAIConfigured } from '@/hooks/use-is-ai-configured'
+﻿import { useIsAIConfigured } from '@/hooks/use-is-ai-configured'
 import { useMemo, useState } from 'react'
 import { getPairById, PAIRS } from '@/config/pairs'
 import { usePredictions } from '@/hooks/use-predictions'
@@ -129,7 +129,7 @@ export function PredictionsPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-49px)] overflow-y-auto bg-[#0f1117] text-gray-200">
+    <div className="h-[calc(100vh-49px)] overflow-y-auto bg-surface text-gray-200">
       <div className="max-w-6xl mx-auto px-4 py-4 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">

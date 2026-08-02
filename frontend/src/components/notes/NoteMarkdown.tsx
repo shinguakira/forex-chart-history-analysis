@@ -65,7 +65,9 @@ export function NoteMarkdown({ source }: Props) {
               {children}
             </blockquote>
           ),
-          strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
+          strong: ({ children }) => (
+            <strong className="font-semibold text-white">{children}</strong>
+          ),
           em: ({ children }) => <em className="italic">{children}</em>,
           hr: () => <hr className="my-3 border-gray-800" />,
           table: ({ children }) => (

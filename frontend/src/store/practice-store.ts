@@ -88,8 +88,7 @@ export const usePracticeStore = create<PracticeState & PracticeActions>()(
         })),
       setSoundMuted: (soundMuted) => set({ soundMuted }),
       setQuizAutoContinue: (quizAutoContinue) => set({ quizAutoContinue }),
-      flashResult: (kind) =>
-        set((s) => ({ pulse: { kind, id: (s.pulse?.id ?? 0) + 1 } })),
+      flashResult: (kind) => set((s) => ({ pulse: { kind, id: (s.pulse?.id ?? 0) + 1 } })),
       clearPulse: () => set({ pulse: null }),
     }),
     {

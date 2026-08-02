@@ -1,11 +1,11 @@
 use std::sync::Arc;
 
 use axum::{routing::get, Router as AxumRouter};
-use forex_api::{build_procedures, load_config_from_db, make_ctx};
+use forex_api::{build_procedures, load_config_from_db, make_ctx, routes::playbook::seed_candles};
 use forex_db::{connect, migrate};
 use tower_http::cors::CorsLayer;
 use tower_http::services::{ServeDir, ServeFile};
-use tracing::info;
+use tracing::{info, warn};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -29,6 +29,14 @@ async fn main() -> anyhow::Result<()> {
     load_config_from_db(&ctx).await?;
     forex_ingestor::recover_orphaned_jobs(&db).await?;
     forex_ingestor::spawn_scheduler(db.clone(), ctx.yahoo.clone());
+
+    // Seed H1 candle data for all existing trades on startup (idempotent — skips already-stored windows)
+    let seed_ctx = ctx.clone();
+    tokio::spawn(async move {
+        if let Err(e) = seed_candles(&seed_ctx).await {
+            warn!("playbook seed failed: {e}");
+        }
+    });
 
     let cors = CorsLayer::new()
         .allow_origin(tower_http::cors::Any)
@@ -64,7 +72,7 @@ fn resolve_bind_addr() -> String {
     if let Ok(port) = std::env::var("PORT") {
         return format!("0.0.0.0:{port}");
     }
-    "127.0.0.1:4000".to_string()
+    "127.0.0.1:24000".to_string()
 }
 
 /// Default DATABASE_URL when none is set. Prefer postgres when compiled in

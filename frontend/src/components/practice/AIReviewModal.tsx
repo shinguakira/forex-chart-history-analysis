@@ -1,4 +1,4 @@
-import { Bot, X } from 'lucide-react'
+﻿import { Bot, X } from 'lucide-react'
 import { useEffect } from 'react'
 import { usePracticeAIReview } from '@/hooks/use-practice-ai-review'
 import type { PracticeTrade } from '@/types/practice'
@@ -27,7 +27,7 @@ export function AIReviewModal({ trade, onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl max-h-[80vh] mx-4 rounded-lg border border-gray-700 bg-[#0f1117] shadow-xl flex flex-col"
+        className="relative w-full max-w-2xl max-h-[80vh] mx-4 rounded-lg border border-gray-700 bg-surface shadow-xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-800">
